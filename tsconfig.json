@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+    "types": ["bun-types"],
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "target": "esnext",
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["frontend/**/*", "node_modules"]
+}

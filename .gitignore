@@ -1,0 +1,13 @@
+# deps
+node_modules/
+.context/
+.env
+.env.local
+.resources/
+
+# build
+.next/
+dist/
+
+# logs
+*.log
