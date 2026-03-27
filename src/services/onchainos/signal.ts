@@ -1,11 +1,11 @@
 import { okxFetch } from "./client";
 import { XLAYER_CHAIN_INDEX } from "../../config/chains";
-import type { OkxSignalToken } from "../../types";
+import type { OkxSignalItem } from "../../types";
 
 interface SignalListResponse {
   code: string;
   msg: string;
-  data: OkxSignalToken[];
+  data: OkxSignalItem[];
 }
 
 export interface SignalResult {
@@ -14,13 +14,9 @@ export interface SignalResult {
   chainIndex: string;
   signalStrength: number;
   walletType?: string;
-  rawData: OkxSignalToken;
+  rawData: OkxSignalItem;
 }
 
-/**
- * Fetch smart money / whale buy signals for X Layer.
- * Returns top signal sorted by strength descending.
- */
 export async function getTopSignal(): Promise<SignalResult | null> {
   const response = await okxFetch<SignalListResponse>(
     "/api/v6/dex/market/signal/list",
@@ -28,7 +24,7 @@ export async function getTopSignal(): Promise<SignalResult | null> {
       method: "POST",
       body: {
         chainIndex: XLAYER_CHAIN_INDEX,
-        walletType: "1", // smart money
+        walletType: "1",
         minAmountUsd: "100",
         limit: "10",
       },
@@ -38,27 +34,26 @@ export async function getTopSignal(): Promise<SignalResult | null> {
   const signals = response.data ?? [];
   if (signals.length === 0) return null;
 
-  // Sort by signalStrength descending
   const sorted = signals
-    .filter((s) => s.tokenContractAddress && s.tokenContractAddress !== "")
-    .sort((a, b) => (b.signalStrength ?? 0) - (a.signalStrength ?? 0));
+    .filter((s) => s.token?.tokenAddress)
+    .sort(
+      (a, b) =>
+        Number.parseFloat(b.amountUsd) - Number.parseFloat(a.amountUsd),
+    );
 
   const top = sorted[0];
   if (!top) return null;
 
   return {
-    tokenAddress: top.tokenContractAddress,
-    tokenSymbol: top.symbol ?? "UNKNOWN",
-    chainIndex: top.chainIndex ?? XLAYER_CHAIN_INDEX,
-    signalStrength: top.signalStrength ?? 0,
+    tokenAddress: top.token.tokenAddress,
+    tokenSymbol: top.token.symbol,
+    chainIndex: top.chainIndex,
+    signalStrength: Number.parseFloat(top.amountUsd),
     walletType: top.walletType,
     rawData: top,
   };
 }
 
-/**
- * Fetch all signals for X Layer (for storage/display).
- */
 export async function getAllSignals(): Promise<SignalResult[]> {
   const response = await okxFetch<SignalListResponse>(
     "/api/v6/dex/market/signal/list",
@@ -75,12 +70,12 @@ export async function getAllSignals(): Promise<SignalResult[]> {
 
   const signals = response.data ?? [];
   return signals
-    .filter((s) => s.tokenContractAddress)
+    .filter((s) => s.token?.tokenAddress)
     .map((s) => ({
-      tokenAddress: s.tokenContractAddress,
-      tokenSymbol: s.symbol ?? "UNKNOWN",
-      chainIndex: s.chainIndex ?? XLAYER_CHAIN_INDEX,
-      signalStrength: s.signalStrength ?? 0,
+      tokenAddress: s.token.tokenAddress,
+      tokenSymbol: s.token.symbol,
+      chainIndex: s.chainIndex,
+      signalStrength: Number.parseFloat(s.amountUsd),
       walletType: s.walletType,
       rawData: s,
     }));

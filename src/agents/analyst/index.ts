@@ -107,13 +107,19 @@ export class AnalystAgent extends Agent {
       return { score: 0, recommendation: "skip", reason: "Honeypot detected" };
     }
 
-    const prompt = `Evaluate this trade opportunity and respond with JSON only.
+    const prompt = `Evaluate this LiquidMesh trade signal and respond with JSON only.
 
-Token: ${context.signal.tokenSymbol} (${context.signal.tokenAddress})
-Signal strength: ${context.signal.signalStrength}
-Security risk level: ${context.security.riskLevel}
-Risk items: ${context.security.riskItems.map((r) => r.title).join(", ") || "none"}
-Price: ${context.price?.price ?? "unknown"}
+IMPORTANT CONTEXT: LiquidMesh always executes OKB→USDG swaps on X Layer regardless of which token triggered the signal.
+The signal token below is what smart money is buying — it indicates X Layer ecosystem activity.
+The actual trade risk is OKB→USDG (native token → stablecoin), which is inherently low risk.
+Score the opportunity based on: signal strength, ecosystem momentum, and market conditions.
+Honeypot is an auto-skip. Otherwise, score based on signal strength and market context.
+
+Signal token: ${context.signal.tokenSymbol} (${context.signal.tokenAddress})
+Signal strength (USD volume): $${context.signal.signalStrength.toFixed(2)}
+Signal token security: ${context.security.riskLevel} risk${context.security.isHoneypot ? " — HONEYPOT" : ""}
+Actual trade: OKB → USDG (stablecoin hedge on X Layer)
+OKB price: ${context.price?.price ?? "unknown"}
 24h price change: ${context.price?.priceChange24h ?? "unknown"}
 
 Respond with exactly this JSON:

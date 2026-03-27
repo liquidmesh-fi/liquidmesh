@@ -1,62 +1,44 @@
 import { okxFetch } from "./client";
 import { XLAYER_CHAIN_INDEX } from "../../config/chains";
-import type { OkxTrendingToken } from "../../types";
+import type { OkxHotToken } from "../../types";
 
-interface TrendingResponse {
+interface HotTokenResponse {
   code: string;
   msg: string;
-  data: OkxTrendingToken[];
-}
-
-interface TokenInfoResponse {
-  code: string;
-  msg: string;
-  data: Array<{
-    tokenContractAddress: string;
-    symbol: string;
-    tokenName: string;
-    decimals: string;
-    totalSupply: string;
-    price: string;
-    volume24h: string;
-    marketCap?: string;
-    logoUrl?: string;
-  }>;
+  data: OkxHotToken[];
 }
 
 /**
- * Get trending tokens on X Layer — fallback when Signal API returns empty.
- * rankingType: 4 = trending score, 5 = Twitter/X mentions
+ * Get hot/trending tokens on X Layer.
+ * Uses /api/v6/dex/market/token/hot-token with rankingType=4 (trending score).
+ * Fallback when Signal API returns empty.
  */
-export async function getTrendingTokens(
-  limit = 10,
-): Promise<OkxTrendingToken[]> {
-  const response = await okxFetch<TrendingResponse>(
-    "/api/v6/dex/token/trending",
+export async function getHotTokens(limit = 10): Promise<OkxHotToken[]> {
+  const response = await okxFetch<HotTokenResponse>(
+    "/api/v6/dex/market/token/hot-token",
     {
       params: {
         chainIndex: XLAYER_CHAIN_INDEX,
         rankingType: "4",
-        limit: String(limit),
       },
     },
   );
 
-  return response.data ?? [];
+  const tokens = response.data ?? [];
+  return tokens.slice(0, limit);
 }
 
 /**
- * Get top trending token as fallback signal source.
+ * Get the top hot token as fallback signal source.
+ * Sorted by volume descending as a momentum proxy.
  */
-export async function getTopTrendingToken(): Promise<OkxTrendingToken | null> {
-  const tokens = await getTrendingTokens(5);
+export async function getTopHotToken(): Promise<OkxHotToken | null> {
+  const tokens = await getHotTokens(10);
   if (tokens.length === 0) return null;
 
-  // Sort by 24h price change as a proxy for momentum
   return tokens.sort(
     (a, b) =>
-      Math.abs(Number.parseFloat(b.priceChangePercent24h ?? "0")) -
-      Math.abs(Number.parseFloat(a.priceChangePercent24h ?? "0")),
+      Number.parseFloat(b.volume ?? "0") - Number.parseFloat(a.volume ?? "0"),
   )[0];
 }
 
@@ -64,6 +46,22 @@ export async function getTopTrendingToken(): Promise<OkxTrendingToken | null> {
  * Get detailed info for a specific token.
  */
 export async function getTokenInfo(tokenAddress: string) {
+  interface TokenInfoResponse {
+    code: string;
+    msg: string;
+    data: Array<{
+      tokenContractAddress: string;
+      symbol: string;
+      tokenName: string;
+      decimals: string;
+      totalSupply: string;
+      price: string;
+      volume24h: string;
+      marketCap?: string;
+      logoUrl?: string;
+    }>;
+  }
+
   const response = await okxFetch<TokenInfoResponse>(
     "/api/v6/dex/token/token-list",
     {

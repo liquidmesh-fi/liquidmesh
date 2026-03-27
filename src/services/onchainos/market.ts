@@ -23,10 +23,8 @@ export async function getTokenPrice(tokenAddress: string): Promise<{
   const response = await okxFetch<PriceResponse>(
     "/api/v6/dex/market/price",
     {
-      params: {
-        chainIndex: XLAYER_CHAIN_INDEX,
-        tokenContractAddress: tokenAddress,
-      },
+      method: "POST",
+      body: [{ chainIndex: XLAYER_CHAIN_INDEX, tokenContractAddress: tokenAddress }],
     },
   );
 
@@ -46,15 +44,13 @@ export async function getTokenPrices(
   tokenAddresses: string[],
 ): Promise<Record<string, string>> {
   const response = await okxFetch<PriceResponse>(
-    "/api/v6/dex/market/prices",
+    "/api/v6/dex/market/price",
     {
       method: "POST",
-      body: {
-        tokens: tokenAddresses.map((addr) => ({
-          chainIndex: XLAYER_CHAIN_INDEX,
-          tokenContractAddress: addr,
-        })),
-      },
+      body: tokenAddresses.map((addr) => ({
+        chainIndex: XLAYER_CHAIN_INDEX,
+        tokenContractAddress: addr,
+      })),
     },
   );
 

@@ -3,10 +3,14 @@ import { type EventBus, type ScoreReadyPayload } from "../../comms/event-bus";
 import type { AgentConfig } from "../../config/agents";
 import { getSwapQuote, buildSwapTransaction } from "../../services/onchainos/swap";
 import { simulateTransaction } from "../../services/onchainos/gateway";
+import {
+  preTransactionUnsignedInfo,
+  broadcastAgenticTransaction,
+} from "../../services/onchainos/agentic-wallet";
 import { settleX402 } from "../../services/onchainos/payments";
 import { insertTrade } from "../../memory/db";
 import { env } from "../../env";
-import { OKB_NATIVE, XLAYER_USDG } from "../../config/chains";
+import { OKB_NATIVE, XLAYER_USDG, XLAYER_CHAIN_INDEX } from "../../config/chains";
 
 // OKB has 18 decimals — convert human-readable to wei
 function toWei(amount: string): string {
@@ -100,35 +104,54 @@ export class ExecutorAgent extends Agent {
         throw new Error(`Simulation failed: ${simulation.reason}`);
       }
 
-      this.log("Simulation passed — broadcasting swap");
+      this.log("Simulation passed — signing via TEE and broadcasting");
 
-      // For the hackathon demo: log the transaction data
-      // In production: sign via TEE and broadcast
-      const demoTxHash = `demo-${Date.now()}-${score.tokenAddress.slice(2, 8)}`;
-      this.log(`[DEMO] Swap tx hash: ${demoTxHash}`);
-      this.log(`[DEMO] Tx data: ${swapTx.data.slice(0, 64)}...`);
+      // Sign via OKX Agentic Wallet TEE and broadcast
+      const unsignedInfo = await preTransactionUnsignedInfo({
+        accountId: this.config.accountId,
+        chainIndex: Number(XLAYER_CHAIN_INDEX),
+        fromAddr: swapTx.from,
+        toAddr: swapTx.to,
+        value: swapTx.value,
+        inputData: swapTx.data,
+        gasLimit: swapTx.gas,
+      });
+
+      if (!unsignedInfo.executeResult) {
+        throw new Error(`Pre-transaction failed: ${unsignedInfo.executeErrorMsg}`);
+      }
+
+      const broadcastResult = await broadcastAgenticTransaction({
+        accountId: this.config.accountId,
+        address: swapTx.from,
+        chainIndex: XLAYER_CHAIN_INDEX,
+        extraData: JSON.stringify(unsignedInfo.extraData),
+      });
+
+      const txHash = broadcastResult.txHash || broadcastResult.orderId;
+      this.log(`Swap broadcast: ${txHash}`);
 
       const { updateTrade } = await import("../../memory/db");
       await updateTrade(trade.id!, {
-        tx_hash: demoTxHash,
+        tx_hash: txHash,
         status: "success",
-        token_symbol: `USDG`,
+        token_symbol: "USDG",
       });
 
       this.eventBus.emit("trade:done", {
         tokenAddress: score.tokenAddress,
         tokenSymbol: "USDG",
         amountOkb: swapAmountOkb,
-        txHash: demoTxHash,
+        txHash,
         success: true,
       });
 
-      this.log(`Trade executed: ${demoTxHash}`);
+      this.log(`Trade executed: ${txHash}`);
 
       return {
         success: true,
         message: `Swap executed: ${swapAmountOkb} OKB → USDG`,
-        data: { txHash: demoTxHash, score: score.score },
+        data: { txHash, score: score.score },
       };
     } catch (err) {
       const errorMsg = String(err);

@@ -2,29 +2,43 @@
 
 // --- OKX API ---
 
-export interface OkxSignalToken {
+// Signal list item from /api/v6/dex/market/signal/list
+export interface OkxSignalItem {
   chainIndex: string;
-  tokenContractAddress: string;
-  symbol: string;
-  signalStrength?: number;
-  buyAmount?: string;
-  walletAddress?: string;
-  walletType?: string;
-}
-
-export interface OkxSignalResponse {
-  code: string;
-  msg: string;
-  data: OkxSignalToken[];
-}
-
-export interface OkxTrendingToken {
-  chainIndex: string;
-  tokenContractAddress: string;
-  symbol: string;
+  amountUsd: string;
   price: string;
-  priceChangePercent24h: string;
-  volume24h?: string;
+  soldRatioPercent: string;
+  timestamp: string;
+  walletType: string;
+  triggerWalletAddress: string;
+  triggerWalletCount: string;
+  cursor: string;
+  token: {
+    tokenAddress: string;
+    symbol: string;
+    name: string;
+    holders: string;
+    logo: string;
+    marketCapUsd: string;
+    top10HolderPercent: string;
+  };
+}
+
+// Hot token item from /api/v6/dex/market/token/hot-token
+export interface OkxHotToken {
+  chainIndex: string;
+  tokenContractAddress: string;
+  tokenSymbol: string;
+  price: string;
+  change: string; // 24h price change %
+  marketCap: string;
+  holders: string;
+  liquidity: string;
+  volume: string;
+  txs: string;
+  uniqueTraders: string;
+  riskLevelControl: string;
+  tokenLogoUrl?: string;
 }
 
 export interface OkxTokenScanResult {

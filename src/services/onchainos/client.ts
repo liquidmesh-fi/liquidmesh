@@ -21,7 +21,7 @@ function generateSignature(
 
 interface OkxFetchOptions {
   method?: "GET" | "POST" | "DELETE";
-  body?: Record<string, unknown>;
+  body?: Record<string, unknown> | unknown[];
   params?: Record<string, string>;
 }
 

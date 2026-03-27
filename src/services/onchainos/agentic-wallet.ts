@@ -1,209 +1,211 @@
+import crypto from "node:crypto";
 import { env } from "../../env";
-import { OKX_API_BASE } from "../../config/chains";
 
-interface AkSession {
+const OKX_BASE = "https://web3.okx.com";
+const WALLET_PREFIX = "/priapi/v5/wallet/agentic";
+
+interface AkInitResponse {
+  nonce: string;
+  iss: string;
+}
+
+interface VerifyResponse {
   accessToken: string;
+  refreshToken: string;
   sessionCert: string;
   encryptedSessionSk: string;
+  sessionKeyExpireAt: string;
+  projectId: string;
+  accountId: string;
+  accountName: string;
+  isNew: boolean;
+  addressList: Array<{
+    accountId?: string;
+    address: string;
+    chainIndex: string;
+    chainName: string;
+    addressType: string;
+  }>;
+  teeId: string;
+}
+
+interface WalletSession {
+  accessToken: string;
+  refreshToken: string;
+  sessionCert: string;
+  sessionPrivateKey: string;
+  encryptedSessionSk: string;
+  projectId: string;
+  accountId: string;
+  accountName: string;
   expiresAt: number;
 }
 
-interface AkLoginResponse {
-  code: string;
-  data: Array<{
-    accessToken: string;
-    sessionCert: string;
-    encryptedSessionSk: string;
-    expiresIn?: number;
-  }>;
+export interface PreTxUnsignedInfo {
+  unsignedTxHash: string;
+  unsignedTx: string;
+  uopHash: string;
+  hash: string;
+  executeErrorMsg: string;
+  executeResult: boolean;
+  extraData: Record<string, unknown>;
 }
 
-interface AccountBalance {
-  tokenAddress: string;
-  symbol: string;
-  balance: string;
-  usdValue: string;
-}
+let cachedSession: WalletSession | null = null;
 
-interface BalanceResponse {
-  code: string;
-  data: Array<{
-    tokenAssets: AccountBalance[];
-  }>;
-}
-
-// Module-level session cache
-let cachedSession: AkSession | null = null;
-
-function buildAkAuthHeaders(timestamp: string): Record<string, string> {
-  const prehash = `${timestamp}GET/api/v5/waas/security/generate-challenge`;
-  const encoder = new TextEncoder();
-  const key = encoder.encode(env.OKX_SECRET_KEY);
-  const msg = encoder.encode(prehash);
-  const hmac = new Bun.CryptoHasher("sha256", key);
-  hmac.update(msg);
-  const signature = btoa(
-    String.fromCharCode(...new Uint8Array(hmac.digest())),
-  );
-
+function anonymousHeaders(): Record<string, string> {
   return {
     "Content-Type": "application/json",
-    "OK-ACCESS-KEY": env.OKX_API_KEY,
-    "OK-ACCESS-SIGN": signature,
-    "OK-ACCESS-TIMESTAMP": timestamp,
-    "OK-ACCESS-PASSPHRASE": env.OKX_PASSPHRASE,
+    "ok-client-version": "2.1.0",
+    "Ok-Access-Client-type": "agent-cli",
   };
 }
 
-export async function akLogin(): Promise<AkSession> {
-  if (cachedSession && Date.now() < cachedSession.expiresAt - 60_000) {
+function jwtHeaders(accessToken: string): Record<string, string> {
+  return { ...anonymousHeaders(), Authorization: `Bearer ${accessToken}` };
+}
+
+function generateX25519Keypair(): { privateKeyB64: string; publicKeyB64: string } {
+  const { publicKey, privateKey } = crypto.generateKeyPairSync("x25519");
+  const pubDer = publicKey.export({ type: "spki", format: "der" });
+  const privDer = privateKey.export({ type: "pkcs8", format: "der" });
+  const rawPub = Buffer.from(pubDer).subarray(pubDer.length - 32);
+  const rawPriv = Buffer.from(privDer).subarray(privDer.length - 32);
+  return {
+    publicKeyB64: rawPub.toString("base64"),
+    privateKeyB64: rawPriv.toString("base64"),
+  };
+}
+
+function hmacSign(
+  timestamp: number,
+  method: string,
+  path: string,
+  params: string,
+  secretKey: string,
+): string {
+  const message = `${timestamp}${method}${path}${params}`;
+  const hmac = crypto.createHmac("sha256", secretKey);
+  hmac.update(message);
+  return hmac.digest("base64");
+}
+
+async function walletPost<T>(
+  path: string,
+  body: Record<string, unknown>,
+  headers: Record<string, string>,
+): Promise<T> {
+  const res = await fetch(`${OKX_BASE}${path}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (res.status >= 500) {
+    throw new Error(`Wallet API server error (HTTP ${res.status})`);
+  }
+
+  const json = (await res.json()) as { code: string | number; msg: string; data: T[] };
+  if (json.code !== "0" && json.code !== 0) {
+    throw new Error(`Wallet API error [${json.code}]: ${json.msg}`);
+  }
+
+  return json.data[0] as T;
+}
+
+export async function akLogin(): Promise<WalletSession> {
+  if (cachedSession && Date.now() / 1000 < cachedSession.expiresAt - 60) {
     return cachedSession;
   }
 
-  const timestamp = new Date().toISOString();
-  const headers = buildAkAuthHeaders(timestamp);
-
-  const res = await fetch(
-    `${OKX_API_BASE}/api/v5/waas/mpc/account/session-create`,
-    {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        apiKey: env.OKX_API_KEY,
-      }),
-    },
+  const initResp = await walletPost<AkInitResponse>(
+    `${WALLET_PREFIX}/auth/ak/init`,
+    { apiKey: env.OKX_API_KEY },
+    anonymousHeaders(),
   );
 
-  if (!res.ok) {
-    throw new Error(`akLogin failed: ${res.status} ${await res.text()}`);
-  }
+  const { privateKeyB64, publicKeyB64 } = generateX25519Keypair();
 
-  const json: AkLoginResponse = await res.json();
-  if (json.code !== "0") {
-    throw new Error(`akLogin error ${json.code}`);
-  }
+  const timestamp = Date.now();
+  const sign = hmacSign(
+    timestamp,
+    "GET",
+    "/web3/ak/agentic/login",
+    `?locale=en-US&nonce=${initResp.nonce}&iss=${initResp.iss}`,
+    env.OKX_SECRET_KEY,
+  );
 
-  const sessionData = json.data[0];
+  const verifyResp = await walletPost<VerifyResponse>(
+    `${WALLET_PREFIX}/auth/ak/verify`,
+    {
+      tempPubKey: publicKeyB64,
+      apiKey: env.OKX_API_KEY,
+      passphrase: env.OKX_PASSPHRASE,
+      timestamp: timestamp.toString(),
+      sign,
+      locale: "en-US",
+    },
+    anonymousHeaders(),
+  );
+
   cachedSession = {
-    accessToken: sessionData.accessToken,
-    sessionCert: sessionData.sessionCert,
-    encryptedSessionSk: sessionData.encryptedSessionSk,
-    expiresAt: Date.now() + (sessionData.expiresIn ?? 3600) * 1000,
+    accessToken: verifyResp.accessToken,
+    refreshToken: verifyResp.refreshToken,
+    sessionCert: verifyResp.sessionCert,
+    sessionPrivateKey: privateKeyB64,
+    encryptedSessionSk: verifyResp.encryptedSessionSk,
+    projectId: verifyResp.projectId,
+    accountId: verifyResp.accountId,
+    accountName: verifyResp.accountName,
+    expiresAt: Number(verifyResp.sessionKeyExpireAt),
   };
 
   return cachedSession;
 }
 
-export async function getAccountBalance(
-  accountId: string,
-  chainIndex: string,
-): Promise<AccountBalance[]> {
-  const session = await akLogin();
-
-  const res = await fetch(
-    `${OKX_API_BASE}/api/v5/waas/asset/token-balances?accountId=${accountId}&chainIndex=${chainIndex}`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "OK-ACCESS-KEY": env.OKX_API_KEY,
-        "OK-ACCESS-PASSPHRASE": env.OKX_PASSPHRASE,
-        Authorization: `Bearer ${session.accessToken}`,
-      },
-    },
-  );
-
-  if (!res.ok) {
-    throw new Error(
-      `getAccountBalance failed: ${res.status} ${await res.text()}`,
-    );
+async function getAuthedSession(): Promise<WalletSession> {
+  if (!cachedSession || Date.now() / 1000 >= cachedSession.expiresAt - 60) {
+    return akLogin();
   }
-
-  const json: BalanceResponse = await res.json();
-  if (json.code !== "0") {
-    throw new Error(`getAccountBalance error ${json.code}`);
-  }
-
-  return json.data?.[0]?.tokenAssets ?? [];
-}
-
-export interface UnsignedTxInfo {
-  unsignedHash: string;
-  signType: string;
-  encryptedPrivKey: string;
+  return cachedSession;
 }
 
 export async function preTransactionUnsignedInfo(params: {
   accountId: string;
-  chainIndex: string;
-  from: string;
-  to: string;
+  chainIndex: number;
+  fromAddr: string;
+  toAddr: string;
   value: string;
-  data: string;
-  gas: string;
-  gasPrice: string;
-}): Promise<UnsignedTxInfo> {
-  const session = await akLogin();
-
-  const res = await fetch(
-    `${OKX_API_BASE}/api/v5/waas/mpc/transaction/generate-unsigned-info`,
+  inputData?: string;
+  gasLimit?: string;
+}): Promise<PreTxUnsignedInfo> {
+  const session = await getAuthedSession();
+  return walletPost<PreTxUnsignedInfo>(
+    `${WALLET_PREFIX}/pre-transaction/unsignedInfo`,
     {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "OK-ACCESS-KEY": env.OKX_API_KEY,
-        "OK-ACCESS-PASSPHRASE": env.OKX_PASSPHRASE,
-        Authorization: `Bearer ${session.accessToken}`,
-      },
-      body: JSON.stringify(params),
+      chainPath: "m/44/60",
+      chainIndex: params.chainIndex,
+      fromAddr: params.fromAddr,
+      toAddr: params.toAddr,
+      value: params.value,
+      sessionCert: session.sessionCert,
+      ...(params.inputData ? { inputData: params.inputData } : {}),
+      ...(params.gasLimit ? { gasLimit: params.gasLimit } : {}),
     },
+    jwtHeaders(session.accessToken),
   );
-
-  if (!res.ok) {
-    throw new Error(
-      `preTransactionUnsignedInfo failed: ${res.status} ${await res.text()}`,
-    );
-  }
-
-  const json = await res.json();
-  if (json.code !== "0") {
-    throw new Error(`preTransactionUnsignedInfo error ${json.code}: ${json.msg}`);
-  }
-
-  return json.data[0] as UnsignedTxInfo;
 }
 
-export async function broadcastTransaction(params: {
+export async function broadcastAgenticTransaction(params: {
   accountId: string;
   address: string;
   chainIndex: string;
   extraData: string;
-}): Promise<string> {
-  const session = await akLogin();
-
-  const res = await fetch(
-    `${OKX_API_BASE}/api/v5/waas/mpc/transaction/broadcast`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "OK-ACCESS-KEY": env.OKX_API_KEY,
-        "OK-ACCESS-PASSPHRASE": env.OKX_PASSPHRASE,
-        Authorization: `Bearer ${session.accessToken}`,
-      },
-      body: JSON.stringify(params),
-    },
+}): Promise<{ pkgId: string; orderId: string; txHash: string }> {
+  const session = await getAuthedSession();
+  return walletPost<{ pkgId: string; orderId: string; txHash: string }>(
+    `${WALLET_PREFIX}/pre-transaction/broadcast-transaction`,
+    params,
+    jwtHeaders(session.accessToken),
   );
-
-  if (!res.ok) {
-    throw new Error(
-      `broadcastTransaction failed: ${res.status} ${await res.text()}`,
-    );
-  }
-
-  const json = await res.json();
-  if (json.code !== "0") {
-    throw new Error(`broadcastTransaction error ${json.code}: ${json.msg}`);
-  }
-
-  return json.data[0]?.txHash as string;
 }

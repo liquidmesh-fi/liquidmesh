@@ -2,7 +2,7 @@ import { Agent, type AgentRunResult } from "../agent";
 import type { EventBus } from "../../comms/event-bus";
 import type { AgentConfig } from "../../config/agents";
 import { getTopSignal } from "../../services/onchainos/signal";
-import { getTopTrendingToken } from "../../services/onchainos/token";
+import { getTopHotToken } from "../../services/onchainos/token";
 import { insertSignal } from "../../memory/db";
 import { XLAYER_CHAIN_INDEX } from "../../config/chains";
 
@@ -32,17 +32,17 @@ export class ScoutAgent extends Agent {
       } else {
         // Fallback: trending tokens
         this.log("No signals — falling back to trending tokens");
-        const trending = await getTopTrendingToken();
+        const hotToken = await getTopHotToken();
 
-        if (!trending) {
-          return { success: false, message: "No signals and no trending tokens found" };
+        if (!hotToken) {
+          return { success: false, message: "No signals and no hot tokens found" };
         }
 
-        this.log(`Trending fallback: ${trending.symbol}`);
-        tokenAddress = trending.tokenContractAddress;
-        tokenSymbol = trending.symbol;
+        this.log(`Hot token fallback: ${hotToken.tokenSymbol}`);
+        tokenAddress = hotToken.tokenContractAddress;
+        tokenSymbol = hotToken.tokenSymbol;
         signalStrength = 0;
-        rawData = { source: "trending", priceChange24h: trending.priceChangePercent24h };
+        rawData = { source: "hot-token", priceChange24h: hotToken.change, volume: hotToken.volume };
       }
 
       if (!tokenAddress) {

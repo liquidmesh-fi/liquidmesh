@@ -82,13 +82,17 @@ meshRouter.post("/tick", async (c) => {
     );
   }
 
-  // Trigger a single cycle on all agents (for demo/testing)
-  const results = await Promise.allSettled([
-    registry.scout.runOnce(),
-    registry.analyst.runOnce(),
-    registry.executor.runOnce(),
-    registry.orchestrator.runOnce(),
-  ]);
+  // Run agents sequentially so Scout's signal:ready event is picked up by Analyst,
+  // and Analyst's score:ready is picked up by Executor in the same tick.
+  const results = [];
+  results.push({ status: "fulfilled", value: await registry.scout.runOnce() });
+  // Small delay to let EventBus listeners fire between steps
+  await new Promise((r) => setTimeout(r, 200));
+  results.push({ status: "fulfilled", value: await registry.analyst.runOnce() });
+  await new Promise((r) => setTimeout(r, 200));
+  results.push({ status: "fulfilled", value: await registry.executor.runOnce() });
+  await new Promise((r) => setTimeout(r, 200));
+  results.push({ status: "fulfilled", value: await registry.orchestrator.runOnce() });
 
   return c.json<ApiResponse<typeof results>>({ success: true, data: results });
 });
