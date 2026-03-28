@@ -40,6 +40,7 @@ export class AnalystAgent extends Agent {
         const settled = await settleX402(
           `${env.PUBLIC_API_URL}/scout/signal`,
           this.config.walletAddress,
+          this.config.accountId,
         );
         signalData = settled.body as Record<string, unknown>;
       } catch (err) {

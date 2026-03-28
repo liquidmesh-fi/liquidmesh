@@ -51,6 +51,7 @@ export class ExecutorAgent extends Agent {
       const settled = await settleX402(
         `${env.PUBLIC_API_URL}/analyst/score`,
         this.config.walletAddress,
+        this.config.accountId,
       );
       scoreData = settled.body as Record<string, unknown>;
     } catch (err) {

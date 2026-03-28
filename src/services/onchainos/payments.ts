@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { Aead, CipherSuite, Kdf, Kem } from "hpke-js";
 import { XLAYER_CHAIN_INDEX, XLAYER_USDG, XLAYER_X402_NETWORK } from "../../config/chains";
+import { okxFetch } from "./client";
 import { akLogin } from "./agentic-wallet";
 
 export const X402_SIGNAL_PRICE = "1000"; // 0.001 USDG (6 decimals)
@@ -48,6 +49,112 @@ export interface X402SettleResult {
   currency: string;
 }
 
+// ── Server-side: OKX x402 verify ────────────────────────────────────────────
+
+interface OkxX402VerifyResponse {
+  code: string;
+  data: Array<{
+    isValid: boolean;
+    payer: string;
+    invalidReason: string | null;
+  }>;
+}
+
+interface OkxX402SettleResponse {
+  code: string;
+  data: Array<{
+    success: boolean;
+    txHash: string;
+    payer: string;
+    errorReason: string | null;
+    chainIndex: string;
+  }>;
+}
+
+/**
+ * Server-side: call OKX /api/v6/x402/verify to validate an incoming EIP-3009 payment.
+ * Called by Scout/Analyst route handlers when they receive an X-Payment header.
+ */
+export async function okxVerifyX402Payment(
+  xPaymentHeader: string,
+  payTo: string,
+  maxAmount: string,
+): Promise<{ isValid: boolean; payer: string; invalidReason: string | null }> {
+  const decoded = JSON.parse(Buffer.from(xPaymentHeader, "base64").toString("utf-8"));
+  const accepted: X402Requirement = decoded.accepted ?? {};
+
+  const response = await okxFetch<OkxX402VerifyResponse>("/api/v6/x402/verify", {
+    method: "POST",
+    body: {
+      x402Version: decoded.x402Version ?? 1,
+      chainIndex: XLAYER_CHAIN_INDEX,
+      paymentPayload: {
+        x402Version: decoded.x402Version ?? 1,
+        scheme: accepted.scheme ?? "exact",
+        payload: decoded.payload,
+      },
+      paymentRequirements: {
+        scheme: "exact",
+        maxAmountRequired: maxAmount,
+        payTo,
+        asset: XLAYER_USDG,
+        maxTimeoutSeconds: 300,
+        extra: { name: "USDG", version: "2" },
+      },
+    },
+  });
+
+  const result = response.data?.[0];
+  if (!result) throw new Error("OKX x402 verify returned no data");
+  return result;
+}
+
+/**
+ * Server-side: call OKX /api/v6/x402/settle to execute the on-chain USDG transfer.
+ * Returns a real txHash from X Layer.
+ */
+export async function okxSettleX402Payment(
+  xPaymentHeader: string,
+  payTo: string,
+  maxAmount: string,
+  resource: string,
+  description: string,
+): Promise<{ success: boolean; txHash: string; payer: string; errorReason: string | null }> {
+  const decoded = JSON.parse(Buffer.from(xPaymentHeader, "base64").toString("utf-8"));
+  const accepted: X402Requirement = decoded.accepted ?? {};
+
+  const response = await okxFetch<OkxX402SettleResponse>("/api/v6/x402/settle", {
+    method: "POST",
+    body: {
+      x402Version: decoded.x402Version ?? 1,
+      chainIndex: XLAYER_CHAIN_INDEX,
+      syncSettle: true,
+      paymentPayload: {
+        x402Version: decoded.x402Version ?? 1,
+        scheme: accepted.scheme ?? "exact",
+        payload: decoded.payload,
+      },
+      paymentRequirements: {
+        scheme: "exact",
+        resource,
+        description,
+        mimeType: "application/json",
+        maxAmountRequired: maxAmount,
+        payTo,
+        asset: XLAYER_USDG,
+        maxTimeoutSeconds: 300,
+        extra: { name: "USDG", version: "2" },
+      },
+    },
+  });
+
+  const result = response.data?.[0];
+  if (!result) throw new Error("OKX x402 settle returned no data");
+  return result;
+}
+
+// ── Client-side: build X-Payment header ─────────────────────────────────────
+
 function encodeB64(data: string): string {
   return Buffer.from(data, "utf-8").toString("base64");
 }
@@ -72,7 +179,11 @@ async function hpkeDecryptSessionSk(encryptedB64: string, sessionKeyB64: string)
     aead: Aead.Aes256Gcm,
   });
 
-  const recipientKey = await suite.importKey("raw", skBytes.buffer.slice(skBytes.byteOffset, skBytes.byteOffset + skBytes.byteLength) as ArrayBuffer, false);
+  const recipientKey = await suite.importKey(
+    "raw",
+    skBytes.buffer.slice(skBytes.byteOffset, skBytes.byteOffset + skBytes.byteLength) as ArrayBuffer,
+    false,
+  );
   const ctx = await suite.createRecipientContext({ recipientKey, enc, info: HPKE_INFO });
   const plaintext = await ctx.open(ciphertext, new Uint8Array(0));
   const seed = new Uint8Array(plaintext);
@@ -87,7 +198,11 @@ function ed25519Sign(seed: Uint8Array, message: Uint8Array): Uint8Array {
   return new Uint8Array(crypto.sign(null, message, privateKey));
 }
 
-async function signX402(payerAddress: string, requirement: X402Requirement): Promise<X402Proof> {
+async function signX402(
+  payerAddress: string,
+  accountId: string,
+  requirement: X402Requirement,
+): Promise<X402Proof> {
   const session = await akLogin();
 
   const now = Math.floor(Date.now() / 1000);
@@ -95,6 +210,7 @@ async function signX402(payerAddress: string, requirement: X402Requirement): Pro
   const nonce = `0x${Buffer.from(crypto.randomBytes(32)).toString("hex")}`;
 
   const baseFields = {
+    accountId,
     chainIndex: Number(XLAYER_CHAIN_INDEX),
     from: payerAddress,
     to: requirement.payTo,
@@ -140,7 +256,12 @@ async function signX402(payerAddress: string, requirement: X402Requirement): Pro
   const signRes = await fetch(`${OKX_BASE}${WALLET_PREFIX}/pre-transaction/sign-msg`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ ...baseFields, domainHash, sessionCert: session.sessionCert, sessionSignature: sessionSignatureB64 }),
+    body: JSON.stringify({
+      ...baseFields,
+      domainHash,
+      sessionCert: session.sessionCert,
+      sessionSignature: sessionSignatureB64,
+    }),
   });
   const signJson = (await signRes.json()) as {
     code: string | number;
@@ -154,26 +275,33 @@ async function signX402(payerAddress: string, requirement: X402Requirement): Pro
 
   return {
     signature: signJson.data[0].signature,
-    authorization: { from: payerAddress, to: requirement.payTo, value: requirement.amount, validAfter: "0", validBefore, nonce },
+    authorization: {
+      from: payerAddress,
+      to: requirement.payTo,
+      value: requirement.amount,
+      validAfter: "0",
+      validBefore,
+      nonce,
+    },
   };
 }
 
 /**
- * Full x402 settle:
- * 1. Probe → get 402 + payment requirements
- * 2. TEE sign EIP-3009 transferWithAuthorization
+ * Client-side: full x402 settle flow.
+ * 1. Probe endpoint → get 402 + payment requirements
+ * 2. TEE sign EIP-3009 transferWithAuthorization (from payer's sub-account)
  * 3. Replay request with signed X-Payment header
  * 4. Parse txHash from payment-response header
  */
 export async function settleX402(
   serviceUrl: string,
   payerAddress: string,
+  accountId: string,
 ): Promise<X402SettleResult> {
   // Step 1: Probe
   const probeRes = await fetch(serviceUrl, { method: "GET", signal: AbortSignal.timeout(10000) });
 
   if (probeRes.status !== 402) {
-    // Endpoint doesn't require payment
     const body = await probeRes.json().catch(() => ({}));
     return { txHash: "no-payment-required", body, amount: "0", currency: "USDG" };
   }
@@ -185,17 +313,18 @@ export async function settleX402(
   if (!decoded.accepts?.length) throw new Error("No payment options in 402 response");
 
   // Prefer X Layer (eip155:196)
-  const accepted = decoded.accepts.find(
-    (a) => a.network === XLAYER_X402_NETWORK || a.network === `eip155:${XLAYER_CHAIN_INDEX}`
-  ) ?? decoded.accepts[0];
+  const accepted =
+    decoded.accepts.find(
+      (a) => a.network === XLAYER_X402_NETWORK || a.network === `eip155:${XLAYER_CHAIN_INDEX}`,
+    ) ?? decoded.accepts[0];
 
-  // Ensure USDG asset and network
+  // Ensure required metadata
   if (!accepted.asset) accepted.asset = XLAYER_USDG;
   if (!accepted.network || accepted.network === "unknown") accepted.network = XLAYER_X402_NETWORK;
-  if (!accepted.extra || Object.keys(accepted.extra).length === 0) accepted.extra = { name: "USDG", version: "2" };
+  accepted.extra = { name: "USDG", version: "2" };
 
-  // Step 2: TEE sign
-  const proof = await signX402(payerAddress, accepted);
+  // Step 2: TEE sign from the correct sub-account
+  const proof = await signX402(payerAddress, accountId, accepted);
 
   // Step 3: Build payment payload
   const paymentPayload = {
@@ -237,45 +366,16 @@ export async function settleX402(
 }
 
 /**
- * Server-side: verify incoming EIP-3009 payment authorization.
- * Returns payer address and amount for logging.
+ * Server-side: build X-Payment-Response header after OKX settles on-chain.
  */
-export function verifyIncomingPayment(xPaymentHeader: string): {
-  from: string;
-  amount: string;
-  validBefore: string;
-  signature: string;
-} {
-  const decoded = JSON.parse(decodeB64(xPaymentHeader));
-  const auth = decoded?.payload?.authorization;
-
-  if (!auth?.from || !auth?.value || !auth?.validBefore) {
-    throw new Error("Invalid x402 payment: missing authorization fields");
-  }
-
-  const validBefore = Number.parseInt(auth.validBefore, 10);
-  if (Date.now() / 1000 > validBefore) {
-    throw new Error("x402 payment expired");
-  }
-
-  return {
-    from: auth.from,
-    amount: auth.value,
-    validBefore: auth.validBefore,
-    signature: decoded?.payload?.signature ?? "",
-  };
-}
-
-/**
- * Server-side: build X-Payment-Response header after accepting payment.
- * In production the txHash comes from submitting transferWithAuthorization on-chain.
- */
-export function buildPaymentResponse(txHash: string): string {
-  return encodeB64(JSON.stringify({
-    success: true,
-    transaction: txHash,
-    network: XLAYER_X402_NETWORK,
-    payer: "",
-    settledAt: Date.now(),
-  }));
+export function buildPaymentResponse(txHash: string, payer = ""): string {
+  return encodeB64(
+    JSON.stringify({
+      success: true,
+      transaction: txHash,
+      network: XLAYER_X402_NETWORK,
+      payer,
+      settledAt: Date.now(),
+    }),
+  );
 }
