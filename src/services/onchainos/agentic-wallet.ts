@@ -48,6 +48,8 @@ export interface PreTxUnsignedInfo {
   hash: string;
   executeErrorMsg: string;
   executeResult: boolean;
+  signType: string;
+  encoding: string;
   extraData: Record<string, unknown>;
 }
 

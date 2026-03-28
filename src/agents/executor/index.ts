@@ -107,6 +107,10 @@ export class ExecutorAgent extends Agent {
         extraData: JSON.stringify(unsignedInfo.extraData),
       });
 
+      this.log(`unsignedInfo keys: ${Object.keys(unsignedInfo).join(", ")}`);
+      this.log(`unsignedInfo.hash=${unsignedInfo.hash} uopHash=${unsignedInfo.uopHash} signType=${(unsignedInfo as any).signType} encoding=${(unsignedInfo as any).encoding}`);
+      this.log(`extraData=${JSON.stringify(unsignedInfo.extraData)}`);
+
       const txHash = broadcastResult.txHash || broadcastResult.orderId;
       this.log(`Swap broadcast: ${txHash}`);
 
