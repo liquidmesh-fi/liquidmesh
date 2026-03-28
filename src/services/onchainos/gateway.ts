@@ -58,7 +58,12 @@ export async function simulateTransaction(params: {
       method: "POST",
       body: {
         chainIndex: XLAYER_CHAIN_INDEX,
-        ...params,
+        fromAddress: params.from,
+        toAddress: params.to,
+        txAmount: params.value,
+        inputData: params.data,
+        gasLimit: params.gas,
+        gasPrice: params.gasPrice,
       },
     },
   );

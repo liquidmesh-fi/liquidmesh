@@ -205,7 +205,7 @@ Do not start from scratch — borrow and adapt:
 
 - detail
 
-Co-Authored-By: Oz <oz-agent@warp.dev>
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 ```
 
 Types: `feat` `fix` `deploy` `docs` `test`

@@ -59,7 +59,7 @@ export async function getSwapQuote(
     "/api/v6/dex/aggregator/quote",
     {
       params: {
-        chainId: XLAYER_CHAIN_INDEX,
+        chainIndex: XLAYER_CHAIN_INDEX,
         fromTokenAddress: fromToken,
         toTokenAddress: toToken,
         amount: fromAmount,
@@ -93,12 +93,12 @@ export async function buildSwapTransaction(
     "/api/v6/dex/aggregator/swap",
     {
       params: {
-        chainId: XLAYER_CHAIN_INDEX,
+        chainIndex: XLAYER_CHAIN_INDEX,
         fromTokenAddress: fromToken,
         toTokenAddress: toToken,
         amount: fromAmount,
         userWalletAddress: userAddress,
-        slippage,
+        slippagePercent: slippage,
       },
     },
   );
@@ -129,7 +129,7 @@ export async function getApproveTransaction(
     "/api/v6/dex/aggregator/approve-transaction",
     {
       params: {
-        chainId: XLAYER_CHAIN_INDEX,
+        chainIndex: XLAYER_CHAIN_INDEX,
         tokenContractAddress: tokenAddress,
         approveAmount,
       },

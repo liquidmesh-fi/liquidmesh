@@ -51,7 +51,9 @@ export interface PreTxUnsignedInfo {
   extraData: Record<string, unknown>;
 }
 
-let cachedSession: WalletSession | null = null;
+// Per-account session cache — key is accountId
+const sessionCache = new Map<string, WalletSession>();
+const DEFAULT_CACHE_KEY = "__default__";
 
 function anonymousHeaders(): Record<string, string> {
   return {
@@ -113,9 +115,15 @@ async function walletPost<T>(
   return json.data[0] as T;
 }
 
-export async function akLogin(): Promise<WalletSession> {
-  if (cachedSession && Date.now() / 1000 < cachedSession.expiresAt - 60) {
-    return cachedSession;
+/**
+ * Create or return a cached TEE session for the given accountId.
+ * Passing accountId in ak/verify tells OKX which sub-account's TEE key to use for signing.
+ */
+export async function akLogin(accountId?: string): Promise<WalletSession> {
+  const cacheKey = accountId ?? DEFAULT_CACHE_KEY;
+  const cached = sessionCache.get(cacheKey);
+  if (cached && Date.now() / 1000 < cached.expiresAt - 60) {
+    return cached;
   }
 
   const initResp = await walletPost<AkInitResponse>(
@@ -135,20 +143,25 @@ export async function akLogin(): Promise<WalletSession> {
     env.OKX_SECRET_KEY,
   );
 
+  const verifyBody: Record<string, string> = {
+    tempPubKey: publicKeyB64,
+    apiKey: env.OKX_API_KEY,
+    passphrase: env.OKX_PASSPHRASE,
+    timestamp: timestamp.toString(),
+    sign,
+    locale: "en-US",
+  };
+
+  // Pass target accountId so OKX TEE creates the session for the correct sub-account
+  if (accountId) verifyBody.accountId = accountId;
+
   const verifyResp = await walletPost<VerifyResponse>(
     `${WALLET_PREFIX}/auth/ak/verify`,
-    {
-      tempPubKey: publicKeyB64,
-      apiKey: env.OKX_API_KEY,
-      passphrase: env.OKX_PASSPHRASE,
-      timestamp: timestamp.toString(),
-      sign,
-      locale: "en-US",
-    },
+    verifyBody,
     anonymousHeaders(),
   );
 
-  cachedSession = {
+  const session: WalletSession = {
     accessToken: verifyResp.accessToken,
     refreshToken: verifyResp.refreshToken,
     sessionCert: verifyResp.sessionCert,
@@ -160,14 +173,17 @@ export async function akLogin(): Promise<WalletSession> {
     expiresAt: Number(verifyResp.sessionKeyExpireAt),
   };
 
-  return cachedSession;
+  sessionCache.set(cacheKey, session);
+  return session;
 }
 
-async function getAuthedSession(): Promise<WalletSession> {
-  if (!cachedSession || Date.now() / 1000 >= cachedSession.expiresAt - 60) {
-    return akLogin();
+async function getAuthedSession(accountId?: string): Promise<WalletSession> {
+  const cacheKey = accountId ?? DEFAULT_CACHE_KEY;
+  const cached = sessionCache.get(cacheKey);
+  if (!cached || Date.now() / 1000 >= cached.expiresAt - 60) {
+    return akLogin(accountId);
   }
-  return cachedSession;
+  return cached;
 }
 
 export async function preTransactionUnsignedInfo(params: {
@@ -179,7 +195,7 @@ export async function preTransactionUnsignedInfo(params: {
   inputData?: string;
   gasLimit?: string;
 }): Promise<PreTxUnsignedInfo> {
-  const session = await getAuthedSession();
+  const session = await getAuthedSession(params.accountId);
   return walletPost<PreTxUnsignedInfo>(
     `${WALLET_PREFIX}/pre-transaction/unsignedInfo`,
     {
@@ -202,7 +218,7 @@ export async function broadcastAgenticTransaction(params: {
   chainIndex: string;
   extraData: string;
 }): Promise<{ pkgId: string; orderId: string; txHash: string }> {
-  const session = await getAuthedSession();
+  const session = await getAuthedSession(params.accountId);
   return walletPost<{ pkgId: string; orderId: string; txHash: string }>(
     `${WALLET_PREFIX}/pre-transaction/broadcast-transaction`,
     params,

@@ -148,11 +148,11 @@ Respond with exactly this JSON:
     };
 
     const score = Math.min(100, Math.max(0, parsed.score ?? 0));
-    const recommendation = score >= 50 ? "execute" : "skip";
+    const recommendation: "execute" | "skip" = score >= 40 ? "execute" : "skip";
 
     return {
       score,
-      recommendation: (parsed.recommendation as "execute" | "skip") ?? recommendation,
+      recommendation,
       reason: parsed.reason ?? "AI evaluation complete",
     };
   }

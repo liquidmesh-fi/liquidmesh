@@ -203,7 +203,7 @@ async function signX402(
   accountId: string,
   requirement: X402Requirement,
 ): Promise<X402Proof> {
-  const session = await akLogin();
+  const session = await akLogin(accountId);
 
   const now = Math.floor(Date.now() / 1000);
   const validBefore = (now + (requirement.maxTimeoutSeconds || 300)).toString();

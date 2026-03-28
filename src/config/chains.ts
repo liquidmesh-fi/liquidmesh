@@ -5,7 +5,9 @@ export const XLAYER_X402_NETWORK = "eip155:196";
 export const OKB_NATIVE = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
 export const OKB_DECIMALS = 18;
 
-// USDG on X Layer (same address as USDC)
+export const XLAYER_USDC = "0x74b7f16337b8972027f6196a17a631ac6de26d22";
+export const XLAYER_USDC_DECIMALS = 6;
+
 export const XLAYER_USDG = "0x4ae46a509f6b1d9056937ba4500cb143933d2dc8";
 export const XLAYER_USDG_DECIMALS = 6;
 
