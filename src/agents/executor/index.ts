@@ -2,39 +2,18 @@ import { Agent, type AgentRunResult } from "../agent";
 import { type EventBus, type ScoreReadyPayload } from "../../comms/event-bus";
 import type { AgentConfig } from "../../config/agents";
 import { getSwapQuote, buildSwapTransaction } from "../../services/onchainos/swap";
+import {
+  preTransactionUnsignedInfo,
+  broadcastAgenticTransaction,
+} from "../../services/onchainos/agentic-wallet";
 import { settleX402 } from "../../services/onchainos/payments";
 import { insertTrade } from "../../memory/db";
 import { env } from "../../env";
 import { OKB_NATIVE, XLAYER_USDC, XLAYER_CHAIN_INDEX } from "../../config/chains";
 
-// OKB has 18 decimals — convert human-readable to wei
 function toWei(amount: string): string {
   const val = parseFloat(amount);
   return BigInt(Math.floor(val * 1e18)).toString();
-}
-
-async function runOnchainos(args: string[]): Promise<{ ok: boolean; txHash?: string; error?: string }> {
-  const proc = Bun.spawn(["onchainos", ...args], {
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-
-  const [stdout, stderr] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-  ]);
-  await proc.exited;
-
-  const output = stdout.trim() || stderr.trim();
-  try {
-    const parsed = JSON.parse(output) as { ok: boolean; data?: { txHash?: string }; error?: string };
-    if (parsed.ok && parsed.data?.txHash) {
-      return { ok: true, txHash: parsed.data.txHash };
-    }
-    return { ok: false, error: parsed.error ?? output };
-  } catch {
-    return { ok: false, error: output };
-  }
 }
 
 export class ExecutorAgent extends Agent {
@@ -64,7 +43,6 @@ export class ExecutorAgent extends Agent {
 
     this.log(`Executing swap for ${score.tokenAddress} (score: ${score.score})`);
 
-    // Pay Analyst's x402 endpoint to formally acquire the score
     let scoreData: Record<string, unknown> = {};
     try {
       const settled = await settleX402(
@@ -74,13 +52,12 @@ export class ExecutorAgent extends Agent {
       );
       scoreData = settled.body as Record<string, unknown>;
     } catch (err) {
-      this.log("x402 score payment skipped (endpoint not yet live)", { err: String(err) });
+      this.log("x402 score payment skipped", { err: String(err) });
     }
 
     const swapAmountOkb = env.EXECUTOR_SWAP_AMOUNT_OKB;
     const swapAmountWei = toWei(swapAmountOkb);
 
-    // Insert trade record before execution
     const trade = await insertTrade({
       score_id: (scoreData as { id?: string }).id ?? "unknown",
       token_address: score.tokenAddress,
@@ -92,16 +69,13 @@ export class ExecutorAgent extends Agent {
     });
 
     try {
-      // Get swap quote (OKB → USDC — direct route works with X Layer AA wallet)
       const quote = await getSwapQuote(swapAmountWei, OKB_NATIVE, XLAYER_USDC);
       this.log(`Swap quote: ${swapAmountOkb} OKB → ${quote.toTokenAmount} USDC, impact: ${quote.priceImpact}%`);
 
-      const priceImpact = parseFloat(quote.priceImpact ?? "0");
-      if (priceImpact > 5) {
-        throw new Error(`Price impact too high: ${priceImpact}%`);
+      if (parseFloat(quote.priceImpact ?? "0") > 5) {
+        throw new Error(`Price impact too high: ${quote.priceImpact}%`);
       }
 
-      // Build swap transaction calldata
       const swapTx = await buildSwapTransaction(
         swapAmountWei,
         this.config.walletAddress,
@@ -110,33 +84,34 @@ export class ExecutorAgent extends Agent {
         "0.5",
       );
 
-      this.log("Signing via onchainos CLI TEE and broadcasting");
+      this.log("Signing via TEE and broadcasting");
 
-      // Switch CLI to executor account and execute swap
-      await runOnchainos(["wallet", "switch", this.config.accountId]);
+      // OKX agentic wallet API expects value in human-readable OKB (e.g. "0.001"), not wei
+      const unsignedInfo = await preTransactionUnsignedInfo({
+        accountId: this.config.accountId,
+        chainIndex: Number(XLAYER_CHAIN_INDEX),
+        fromAddr: swapTx.from,
+        toAddr: swapTx.to,
+        value: swapAmountOkb,
+        inputData: swapTx.data,
+      });
 
-      const result = await runOnchainos([
-        "wallet", "contract-call",
-        "--to", swapTx.to,
-        "--chain", XLAYER_CHAIN_INDEX,
-        "--amt", swapAmountWei,
-        "--input-data", swapTx.data,
-        "--from", swapTx.from,
-      ]);
-
-      if (!result.ok || !result.txHash) {
-        throw new Error(`Swap execution failed: ${result.error}`);
+      if (!unsignedInfo.executeResult) {
+        throw new Error(`Pre-transaction failed: ${unsignedInfo.executeErrorMsg}`);
       }
 
-      const txHash = result.txHash;
+      const broadcastResult = await broadcastAgenticTransaction({
+        accountId: this.config.accountId,
+        address: swapTx.from,
+        chainIndex: XLAYER_CHAIN_INDEX,
+        extraData: JSON.stringify(unsignedInfo.extraData),
+      });
+
+      const txHash = broadcastResult.txHash || broadcastResult.orderId;
       this.log(`Swap broadcast: ${txHash}`);
 
       const { updateTrade } = await import("../../memory/db");
-      await updateTrade(trade.id!, {
-        tx_hash: txHash,
-        status: "success",
-        token_symbol: "USDC",
-      });
+      await updateTrade(trade.id!, { tx_hash: txHash, status: "success", token_symbol: "USDC" });
 
       this.eventBus.emit("trade:done", {
         tokenAddress: score.tokenAddress,
@@ -168,10 +143,7 @@ export class ExecutorAgent extends Agent {
         success: false,
       });
 
-      this.eventBus.emit("agent:error", {
-        agentName: this.name,
-        error: errorMsg,
-      });
+      this.eventBus.emit("agent:error", { agentName: this.name, error: errorMsg });
 
       return { success: false, message: `Executor error: ${errorMsg}` };
     }
