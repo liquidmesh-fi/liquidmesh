@@ -84,9 +84,8 @@ export class ExecutorAgent extends Agent {
         "0.5",
       );
 
-      this.log("Signing via TEE and broadcasting");
+      this.log(`[DEBUG] swapTx.to=${swapTx.to} swapTx.value=${swapTx.value} swapTx.from=${swapTx.from} data_prefix=${swapTx.data?.slice(0, 10)}`);
 
-      // OKX agentic wallet API expects value in human-readable OKB (e.g. "0.001"), not wei
       const unsignedInfo = await preTransactionUnsignedInfo({
         accountId: this.config.accountId,
         chainIndex: Number(XLAYER_CHAIN_INDEX),
