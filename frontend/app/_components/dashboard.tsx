@@ -5,6 +5,7 @@ import { AgentCard } from "./agent-card";
 import { ActivityFeed } from "./activity-feed";
 import { TradeTable } from "./trade-table";
 import { MeshControls } from "./mesh-controls";
+import { WalletButton } from "./wallet-button";
 import { api } from "../../lib/api";
 
 export function Dashboard() {
@@ -29,9 +30,12 @@ export function Dashboard() {
               <p className="text-xs text-white/40">X Layer · OKX OnchainOS</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs text-white/30">
-            <span className="size-1.5 rounded-full bg-emerald-400/60" />
-            Chain 196
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-xs text-white/30">
+              <span className="size-1.5 rounded-full bg-emerald-400/60" />
+              Chain 196
+            </div>
+            <WalletButton />
           </div>
         </div>
       </header>

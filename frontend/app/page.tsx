@@ -1,5 +1,27 @@
-import { Dashboard } from "./_components/dashboard";
+import {
+  LandingNav,
+  Hero,
+  StatsBar,
+  Features,
+  HowItWorks,
+  X402Section,
+  FAQ,
+  CTA,
+  Footer,
+} from "./_components/landing";
 
 export default function Home() {
-  return <Dashboard />;
+  return (
+    <main>
+      <LandingNav />
+      <Hero />
+      <StatsBar />
+      <Features />
+      <HowItWorks />
+      <X402Section />
+      <FAQ />
+      <CTA />
+      <Footer />
+    </main>
+  );
 }
