@@ -9,7 +9,7 @@ import {
 import { settleX402 } from "../../services/onchainos/payments";
 import { insertTrade } from "../../memory/db";
 import { env } from "../../env";
-import { OKB_NATIVE, XLAYER_USDG, XLAYER_CHAIN_INDEX } from "../../config/chains";
+import { OKB_NATIVE, XLAYER_USDC, XLAYER_CHAIN_INDEX } from "../../config/chains";
 
 function toWei(amount: string): string {
   const val = parseFloat(amount);
@@ -69,8 +69,8 @@ export class ExecutorAgent extends Agent {
     });
 
     try {
-      const quote = await getSwapQuote(swapAmountWei, OKB_NATIVE, XLAYER_USDG);
-      this.log(`Swap quote: ${swapAmountOkb} OKB → ${quote.toTokenAmount} USDG, impact: ${quote.priceImpact}%`);
+      const quote = await getSwapQuote(swapAmountWei, OKB_NATIVE, XLAYER_USDC);
+      this.log(`Swap quote: ${swapAmountOkb} OKB → ${quote.toTokenAmount} USDC, impact: ${quote.priceImpact}%`);
 
       if (parseFloat(quote.priceImpact ?? "0") > 5) {
         throw new Error(`Price impact too high: ${quote.priceImpact}%`);
@@ -80,7 +80,7 @@ export class ExecutorAgent extends Agent {
         swapAmountWei,
         this.config.walletAddress,
         OKB_NATIVE,
-        XLAYER_USDG,
+        XLAYER_USDC,
         "0.5",
       );
 
@@ -110,11 +110,11 @@ export class ExecutorAgent extends Agent {
       this.log(`Swap broadcast: ${txHash}`);
 
       const { updateTrade } = await import("../../memory/db");
-      await updateTrade(trade.id!, { tx_hash: txHash, status: "success", token_symbol: "USDG" });
+      await updateTrade(trade.id!, { tx_hash: txHash, status: "success", token_symbol: "USDC" });
 
       this.eventBus.emit("trade:done", {
         tokenAddress: score.tokenAddress,
-        tokenSymbol: "USDG",
+        tokenSymbol: "USDC",
         amountOkb: swapAmountOkb,
         txHash,
         success: true,
@@ -124,7 +124,7 @@ export class ExecutorAgent extends Agent {
 
       return {
         success: true,
-        message: `Swap executed: ${swapAmountOkb} OKB → USDG`,
+        message: `Swap executed: ${swapAmountOkb} OKB → USDC`,
         data: { txHash, score: score.score },
       };
     } catch (err) {

@@ -205,7 +205,7 @@ export async function preTransactionUnsignedInfo(params: {
       chainIndex: params.chainIndex,
       fromAddr: params.fromAddr,
       toAddr: params.toAddr,
-      value: params.value,
+      amount: params.value,
       sessionCert: session.sessionCert,
       ...(params.inputData ? { inputData: params.inputData } : {}),
       ...(params.gasLimit ? { gasLimit: params.gasLimit } : {}),
