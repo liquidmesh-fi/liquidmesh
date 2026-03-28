@@ -7,9 +7,9 @@
 
 ## Current focus
 
-**Phase:** Both deployments live. Only blocker: executor wallet funding.
+**Phase:** V3 implemented. Funding in progress (~$8.50 OKB). Ready for end-to-end test + demo video.
 
-**Goal:** Fund executor wallet after KYC → test end-to-end tick on live infra.
+**Goal:** Fund executor wallet → POST /mesh/tick on live Render → verify txHash on dashboard → record demo video → submit.
 
 ---
 
@@ -31,16 +31,16 @@
 - ✅ Real txHash: `0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570` on X Layer
 - ✅ x402 payments: real OKX verify + settle endpoints wired
 
-### Web (`frontend/`)
+### Web (`frontend/`) — V3
 
 - ✅ Landing page at `/` — 9 sections (Nav, Hero, StatsBar, Features, HowItWorks, X402Section, FAQ, CTA, Footer)
 - ✅ Dashboard at `/dashboard` — agents, activity feed, trade table, mesh controls
-- ✅ FallingPattern hero (replaced fluid-blob) — falling data streams aesthetic
-- ✅ ActivityFeed rewritten as terminal Mesh Log — GSAP char animation, line numbers, color-coded prefixes
-- ✅ TradeTable with expandable rows — analyst score, reason, risk factors, full tx hash
-- ✅ WalletButton removed — no purpose in autonomous agent system
-- ✅ Electric cyan (#22D3EE) primary color across all components
-- ✅ Per-agent Lucide icons + color system (Scout=cyan, Analyst=blue, Executor=violet, Orchestrator=amber)
+- ✅ **V3: Hero updated** — "A Sovereign Agent Economy" headline + self-sustaining narrative
+- ✅ **V3: Features section** — agent taglines include earn/spend roles, Orchestrator shows "compounds profits"
+- ✅ **V3: HowItWorks** — step 4 updated to include compound narrative
+- ✅ **V3: MeshControls** — cycle countdown (Next cycle in Xm Ys · every 30min) + 4-metric economy row (Trades, OKB Spent, USDG Earned, Earn/Spend ratio)
+- ✅ FallingPattern hero, ActivityFeed terminal log, TradeTable expandable rows
+- ✅ Electric cyan (#22D3EE) primary, per-agent color system
 - ✅ TanStack Query 5s polling
 - ✅ `bun run build` passes clean
 
@@ -56,15 +56,17 @@
 
 ## What's next
 
-1. **Fund executor wallet** — needs >0.001 OKB per swap. KYC pending as of Mar 28. Wallet: `EXECUTOR_WALLET_ADDRESS` in env.
-2. **Test end-to-end** — POST /mesh/tick on `https://liquidmesh.onrender.com/mesh/tick`, verify txHash in dashboard
-3. **Wire NEXT_PUBLIC_API_URL** — set to `https://liquidmesh.onrender.com` in Vercel env vars (if not already done)
+1. **Fund executor wallet** — ~$8.50 OKB funding in progress (Mar 28). Wallet: `EXECUTOR_WALLET_ADDRESS` in env.
+2. **Deploy V3 to Render** — `git push` → Render auto-redeploys from main branch
+3. **Deploy V3 to Vercel** — frontend auto-deploys on push
+4. **Test end-to-end** — POST /mesh/tick on `https://liquidmesh.onrender.com/mesh/tick`, verify txHash in dashboard + economy panel shows USDG earned
+5. **Record demo video** — show: landing page (sovereign story) → dashboard (countdown + economy panel) → run tick → txHash on OKLink
 
 ---
 
 ## Blockers
 
-- Executor wallet balance low (0.000688 OKB after one swap on Mar 28). Needs funding after KYC.
+- None post-funding. Wallet funding in progress (~30min from Mar 28 1:17pm GMT).
 
 ---
 

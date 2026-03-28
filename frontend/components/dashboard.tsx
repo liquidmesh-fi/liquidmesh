@@ -17,7 +17,14 @@ export function Dashboard() {
     refetchInterval: 5000,
   });
 
+  const { data: balancesRes } = useQuery({
+    queryKey: ["balances"],
+    queryFn: () => api.getBalances(),
+    refetchInterval: 30000,
+  });
+
   const agents = summaryRes?.data?.mesh?.agents ?? [];
+  const balances = balancesRes?.data ?? [];
 
   return (
     <div className="min-h-screen bg-[#080b0f] text-white">
@@ -61,7 +68,11 @@ export function Dashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {agents.length > 0
               ? agents.map((agent) => (
-                  <AgentCard key={agent.name} agent={agent} />
+                  <AgentCard
+                    key={agent.name}
+                    agent={agent}
+                    balance={balances.find((b) => b.name === agent.name)}
+                  />
                 ))
               : PLACEHOLDER_AGENTS.map((name) => (
                   <PlaceholderCard key={name} name={name} />

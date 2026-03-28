@@ -149,8 +149,9 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-tight drop-shadow-2xl"
         >
-          Autonomous <br />
-          Trading, Onchain
+          A Sovereign <br />
+          Multi-Agent <br className="hidden md:block" />
+          Trading Economy
         </motion.h1>
 
         <motion.p
@@ -159,9 +160,7 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.25 }}
           className="mt-6 text-base md:text-lg text-white/80 max-w-2xl mx-auto leading-relaxed"
         >
-          Four specialized AI agents — each with its own TEE wallet — that
-          scout signals, evaluate risk, execute swaps, and govern the mesh.
-          x402 payments at every hop. No human in the loop.
+          Four autonomous AI agents — each with a TEE wallet — that earn, spend, trade, and compound profits entirely onchain. Multi-agent orchestration execution. No human in the loop. The mesh funds itself.
         </motion.p>
 
         <motion.div
@@ -230,36 +229,36 @@ const AGENTS = [
   {
     Icon: Radar,
     name: "Scout",
-    tagline: "Signal Detection",
+    tagline: "Signal Detection · Earns USDG",
     description:
-      "Monitors X Layer 24/7 using OKX hot-token and smart money signal APIs. Detects whale moves, trending tokens, and unusual volume. Sells signals behind an x402 paywall.",
+      "Monitors X Layer using OKX smart money signal and hot-token APIs. Detects whale moves, trending tokens, and unusual volume. Sells signals via x402 — earns USDG every time Analyst pays.",
     apis: ["hot-token", "dex-signal", "token-trending"],
     color: "cyan",
   },
   {
     Icon: BarChart3,
     name: "Analyst",
-    tagline: "Risk Scoring",
+    tagline: "Risk Scoring · Pays + Earns",
     description:
-      "Pays Scout for signals. Runs OKX security scans, liquidity checks, and holder analysis. Passes structured data to GPT-4o for a 0–100 risk/reward score. Sells scored opportunities.",
+      "Pays Scout for signals via x402. Runs OKX security scans, holder concentration checks, and GPT-4o risk scoring. Publishes scored opportunities behind its own x402 endpoint — earns from Executor.",
     apis: ["dex-security", "token-advanced", "dex-quote"],
     color: "blue",
   },
   {
     Icon: Zap,
     name: "Executor",
-    tagline: "Trade Execution",
+    tagline: "Autonomous Execution · Pays to Trade",
     description:
-      "Pays Analyst for scores ≥ 40. Builds swap calldata via OKX DEX Aggregator. Signs and broadcasts via OKX TEE Agentic Wallet. Returns a real X Layer txHash.",
+      "Pays Analyst for scores ≥ 40 via x402. Builds OKB → USDC swap calldata via OKX DEX Aggregator. Signs with OKX TEE Agentic Wallet and broadcasts to X Layer. Every trade returns a verifiable txHash.",
     apis: ["dex-aggregator", "agentic-wallet", "x402-settle"],
     color: "violet",
   },
   {
     Icon: Network,
     name: "Orchestrator",
-    tagline: "Mesh Governance",
+    tagline: "Economy Governance · Compounds Profits",
     description:
-      "Owns the master budget. Monitors all agent wallets. Enforces spend caps. Maintains the public audit trail — earn/spend ratios, txHashes, agent health.",
+      "Monitors the full agent economy every cycle. Tracks earn/spend ratio across all agents. When the mesh shows surplus USDG earnings, Orchestrator compounds them back into OKB capital — growing the trading base without human top-ups.",
     apis: ["wallet-portfolio", "wallet-history", "metrics"],
     color: "amber",
   },
@@ -297,12 +296,10 @@ export function Features() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-white tracking-tight">
-            Four Agents. One Mesh.
+            Four Sovereign Agents. One Economy.
           </h2>
           <p className="mt-4 text-lg text-white/40 max-w-2xl mx-auto">
-            Each agent has one job, one wallet, and one x402 endpoint. Together
-            they form an autonomous trading system that runs without human
-            intervention.
+            Each agent earns by selling intelligence and spends to acquire it. Together they form a self-sustaining multi-agent economy — no external funding required.
           </p>
         </div>
 
@@ -351,31 +348,31 @@ const STEPS = [
     Icon: Radar,
     title: "Scout detects a signal",
     description:
-      "Hot-token API returns a token with high signal strength. Scout persists it to Supabase, emits to EventBus, and makes the data available behind an x402 endpoint.",
+      "OKX smart money and hot-token APIs surface high-strength signals on X Layer. Scout stores the signal in Supabase and makes it available behind an x402 paywall — earning USDG each time Analyst buys.",
     color: "cyan",
   },
   {
     n: "02",
     Icon: BarChart3,
-    title: "Analyst pays and scores",
+    title: "Analyst pays Scout and scores",
     description:
-      "Analyst calls Scout's endpoint, receives the 402, signs an EIP-3009 USDG transfer via OKX TEE, and replays with X-Payment header. Scout settles on-chain. Analyst scores the signal.",
+      "Analyst sends an EIP-3009 USDG transfer signed by its OKX TEE wallet. Scout settles on-chain via OKX x402 API. Analyst runs OKX security + holder checks and scores the signal with GPT-4o.",
     color: "blue",
   },
   {
     n: "03",
     Icon: Zap,
-    title: "Executor pays and trades",
+    title: "Executor pays Analyst and trades",
     description:
-      "Score ≥ 40 → execute. Executor pays Analyst via x402, builds OKB → USDC swap calldata from OKX DEX Aggregator, signs via TEE, and broadcasts. Real txHash returned.",
+      "Score ≥ 40 triggers execution. Executor pays Analyst via x402, builds OKB → USDC swap calldata from OKX DEX Aggregator, signs via TEE, and broadcasts to X Layer. Real txHash on OKLink.",
     color: "violet",
   },
   {
     n: "04",
     Icon: Network,
-    title: "Orchestrator governs",
+    title: "Orchestrator governs and compounds",
     description:
-      "Records txHash, updates wallet metrics across all 4 agents, enforces OKB budget. Dashboard shows live feed, agent health, and full trade history.",
+      "Orchestrator aggregates earn/spend metrics across all agents. When surplus USDG earnings accumulate above threshold, it compounds them back into OKB capital — keeping the mesh self-sustaining cycle after cycle.",
     color: "amber",
   },
 ];
@@ -386,11 +383,10 @@ export function HowItWorks() {
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-white tracking-tight">
-            How It Works
+            One Cycle. Four Agents. Self-Sustaining.
           </h2>
           <p className="mt-4 text-lg text-white/40 max-w-xl mx-auto">
-            From signal to on-chain settlement in one tick. Every step pays the
-            next.
+            Every 30 minutes, the mesh runs a full orchestration cycle — from signal detection to trade execution to profit compounding.
           </p>
         </div>
 
@@ -552,7 +548,7 @@ const FAQS = [
   },
   {
     q: "How is this different from a regular trading bot?",
-    a: "LiquidMesh is a multi-agent system where each agent has its own wallet, operates independently, and pays the next for intelligence. Scout earns from Analyst, Analyst earns from Executor. Every data transfer is a real payment.",
+    a: "A trading bot is a single script. LiquidMesh is a sovereign agent economy — four independent agents, each with a TEE wallet, that earn revenue by selling intelligence and spend it to acquire better intelligence. The Orchestrator tracks the earn/spend ratio and compounds surplus profits back into trading capital. The mesh is designed to be self-sustaining.",
   },
   {
     q: "Is the code open source?",
@@ -632,11 +628,10 @@ export function CTA() {
           <div className="relative z-10">
             <Activity className="size-8 text-cyan-400/60 mx-auto mb-6" />
             <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-6">
-              Watch the mesh run.
+              Watch the economy run.
             </h2>
             <p className="text-lg text-white/50 mb-10 max-w-xl mx-auto">
-              Four agents. Real wallets. Real swaps. One tick every 30 minutes
-              on X Layer.
+              Four sovereign agents. Real TEE wallets. Real swaps. Every 30 minutes on X Layer — earning, trading, and compounding.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link

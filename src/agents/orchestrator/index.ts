@@ -1,7 +1,7 @@
 import { Agent, type AgentRunResult } from "../agent";
 import { type EventBus, type TradeDonePayload, type BudgetAlertPayload, type AgentErrorPayload } from "../../comms/event-bus";
 import type { AgentConfig } from "../../config/agents";
-import { getTradeSummary, insertMetric } from "../../memory/db";
+import { getTradeSummary, getTotalUsdgEarned, insertMetric } from "../../memory/db";
 
 interface SessionMetrics {
   totalTrades: number;
@@ -42,7 +42,15 @@ export class OrchestratorAgent extends Agent {
     this.log("Running metrics aggregation...");
 
     try {
-      const summary = await getTradeSummary();
+      const [summary, totalUsdgEarned] = await Promise.all([
+        getTradeSummary(),
+        getTotalUsdgEarned(),
+      ]);
+
+      const okbPriceUsd = 30;
+      const earnedUsd = totalUsdgEarned;
+      const spentUsd = summary.totalOkbSpent * okbPriceUsd;
+      const earnSpendRatio = spentUsd > 0 ? earnedUsd / spentUsd : 0;
 
       await insertMetric({
         agent_name: "orchestrator",
@@ -52,6 +60,8 @@ export class OrchestratorAgent extends Agent {
           success: summary.success,
           failed: summary.failed,
           totalOkbSpent: summary.totalOkbSpent,
+          totalUsdgEarned,
+          earnSpendRatio: Number(earnSpendRatio.toFixed(4)),
           sessionOkbSpent: this.sessionMetrics.totalOkbSpent,
           sessionUsdgOnX402: this.sessionMetrics.totalUsdgOnX402,
         },
@@ -67,12 +77,34 @@ export class OrchestratorAgent extends Agent {
         });
       }
 
-      this.log(`Metrics: ${summary.total} total trades, ${summary.success} success, OKB spent: ${summary.totalOkbSpent}`);
+      // Compound check: if mesh has accumulated USDG earnings above threshold, log compound event
+      const COMPOUND_THRESHOLD_USDG = 0.005;
+      if (totalUsdgEarned >= COMPOUND_THRESHOLD_USDG && this.sessionMetrics.successfulTrades > 0) {
+        this.log(`Compound: mesh earned ${totalUsdgEarned.toFixed(6)} USDG (earn/spend ratio: ${earnSpendRatio.toFixed(3)}). Surplus flagged for reinvestment.`);
+        await insertMetric({
+          agent_name: "orchestrator",
+          metric_type: "compound",
+          value: totalUsdgEarned,
+          metadata: {
+            earnSpendRatio: Number(earnSpendRatio.toFixed(4)),
+            totalOkbSpent: summary.totalOkbSpent,
+            totalUsdgEarned,
+            action: "reinvest_surplus",
+          },
+        });
+      }
+
+      this.log(`Economy: ${summary.total} trades, ${summary.success} success, OKB spent: ${summary.totalOkbSpent}, USDG earned: ${totalUsdgEarned.toFixed(6)}, ratio: ${earnSpendRatio.toFixed(3)}`);
 
       return {
         success: true,
         message: "Metrics aggregated",
-        data: { ...summary, session: this.sessionMetrics },
+        data: {
+          ...summary,
+          totalUsdgEarned,
+          earnSpendRatio: Number(earnSpendRatio.toFixed(4)),
+          session: this.sessionMetrics,
+        },
       };
     } catch (err) {
       this.logError("Metrics aggregation failed", err);

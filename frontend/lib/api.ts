@@ -68,7 +68,38 @@ export interface TradeSummary {
   success: number;
   failed: number;
   totalOkbSpent: number;
+  totalUsdgEarned: number;
+  lastTickAt: string | null;
+  nextCycleAt: string | null;
   mesh: MeshStatus;
+}
+
+export interface AgentBalance {
+  name: string;
+  walletAddress: string;
+  okb: string;
+  okbUsd: string;
+  usdg: string;
+  usdc: string;
+  totalUsdValue: string;
+  error?: string;
+}
+
+export interface MeshEconomy {
+  totalUsdgEarned: number;
+  totalOkbSpent: number;
+  earnSpendRatio: number;
+  lastTickAt: string | null;
+  nextCycleAt: string | null;
+  cycleIntervalMinutes: number;
+  tradeCount: number;
+  tradeSuccessRate: number;
+  compoundHistory: Array<{
+    id: string;
+    created_at: string;
+    value: number;
+    metadata: { earnSpendRatio: number; action: string };
+  }>;
 }
 
 export const api = {
@@ -89,6 +120,12 @@ export const api = {
 
   getScores: () =>
     apiFetch<{ success: boolean; data: Score[] }>("/mesh/scores"),
+
+  getEconomy: () =>
+    apiFetch<{ success: boolean; data: MeshEconomy }>("/mesh/economy"),
+
+  getBalances: () =>
+    apiFetch<{ success: boolean; data: AgentBalance[] }>("/mesh/balances"),
 
   startMesh: () =>
     apiFetch<{ success: boolean }>("/mesh/start", { method: "POST" }),

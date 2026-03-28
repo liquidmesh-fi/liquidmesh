@@ -179,3 +179,35 @@ export async function getTradeSummary(): Promise<{
       .reduce((sum, t) => sum + Number.parseFloat(t.amount_okb), 0),
   };
 }
+
+export async function getTotalUsdgEarned(): Promise<number> {
+  const { data, error } = await supabase
+    .from("payments")
+    .select("amount_usdg");
+  if (error) throw new Error(`getTotalUsdgEarned: ${error.message}`);
+
+  const payments = (data ?? []) as Pick<Payment, "amount_usdg">[];
+  return payments.reduce((sum, p) => sum + Number.parseFloat(p.amount_usdg), 0);
+}
+
+export async function getLastTickAt(): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("signals")
+    .select("created_at")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(`getLastTickAt: ${error.message}`);
+  return (data as { created_at: string } | null)?.created_at ?? null;
+}
+
+export async function getCompoundHistory(limit = 5): Promise<Metric[]> {
+  const { data, error } = await supabase
+    .from("metrics")
+    .select("*")
+    .eq("metric_type", "compound")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(`getCompoundHistory: ${error.message}`);
+  return (data ?? []) as Metric[];
+}

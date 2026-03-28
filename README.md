@@ -1,175 +1,217 @@
 # LiquidMesh
 
-> A mesh of autonomous agents on X Layer — each with its own TEE wallet, each paying the next for intelligence via x402 micropayments — that finds, evaluates, and executes token trades entirely onchain.
+> An autonomous multi-agent trading economy on X Layer. Four sovereign AI agents — each with a TEE wallet — discover signals, score risk, execute swaps, and compound profits entirely onchain. No human in the loop. The mesh funds itself.
 
 **X Layer OnchainOS AI Hackathon submission.**
 
-**Live:** [https://liquidmesh.onrender.com](https://liquidmesh.onrender.com) (backend API) · Frontend on Vercel
+**Live:** [https://liquidmeshfi.xyz](https://liquidmeshfi.xyz) · API: [https://liquidmesh.onrender.com](https://liquidmesh.onrender.com)
 
 ---
 
-## What it does
+## The Story
 
-LiquidMesh runs four specialized AI agents in a continuous loop on X Layer. Each agent has a dedicated OKX TEE wallet and a defined role. Agents pay each other for intelligence using the x402 protocol (EIP-3009 USDG micropayments). Every trade is verifiable on OKLink.
+Most autonomous trading systems are single agents with a hardcoded strategy. LiquidMesh is an **autonomous multi-agent trading economy** — not one bot, but four sovereign agents that form a self-sustaining economic mesh. Each agent earns by selling intelligence, spends to acquire it, and the economy compounds profits without any human intervention.
 
 ```
-Scout → Analyst → Executor → Orchestrator
-  (x402)   (x402)   (reports)   (governs)
+Scout earns USDG  ←  sells signals via x402
+Analyst pays Scout, earns from Executor  ←  pays for intelligence, profits from scoring
+Executor pays Analyst, executes swaps  ←  acquires scored opportunities, trades OKB
+Orchestrator governs + compounds  ←  monitors the economy, reinvests surplus into capital
 ```
 
-- **Scout** monitors X Layer for smart money signals using OKX hot-token and signal APIs
-- **Analyst** pays Scout for signals, scores them with OKX security + token APIs + GPT-4o, publishes scored opportunities behind its own x402 paywall
-- **Executor** pays Analyst for scores, executes OKB → USDC swaps on X Layer DEX via OKX agentic wallet TEE signing
-- **Orchestrator** tracks all agent activity, enforces spend caps, maintains the audit trail
+When the mesh is profitable, Orchestrator detects surplus USDG earnings and compounds them back into OKB capital — growing the trading base without any human top-up. The mesh funds itself.
 
 ---
 
-## Live transaction proof
+## Live Transaction Proof
 
 Real X Layer swap executed by the Executor agent:
 
 **`0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570`**
 
-[View on OKLink](https://www.oklink.com/xlayer/tx/0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570)
+[View on OKLink →](https://www.oklink.com/xlayer/tx/0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570)
+
+---
+
+## The Four Pillars
+
+### 1. Multi-Agent Orchestration
+
+Four specialized agents, each sovereign, each with a dedicated OKX TEE wallet and a defined role in the mesh:
+
+| Agent | Role | Intelligence sold | Intelligence bought |
+|---|---|---|---|
+| **Scout** | Signal detection | Signals (x402) | — |
+| **Analyst** | Risk scoring | Scored opportunities (x402) | Signals from Scout |
+| **Executor** | Swap execution | — | Scores from Analyst |
+| **Orchestrator** | Economy governance | — | Mesh-wide metrics |
+
+### 2. x402 Inter-Agent Payments
+
+Every piece of intelligence is behind an x402 paywall. Agents pay each other with USDG using EIP-3009 signed transfers via OKX TEE — real on-chain settlements, verifiable on OKLink, with no human approvals.
+
+```
+Analyst → POST /scout/signal
+← 402 Payment Required + X-Payment-Required header
+Analyst signs EIP-3009 USDG transfer via OKX TEE
+Analyst replays request + X-Payment: base64(signature)
+Scout calls OKX /x402/verify → /x402/settle
+Scout returns signal + settlement txHash
+```
+
+### 3. Autonomous Onchain Execution
+
+Executor builds swap calldata via OKX DEX Aggregator, signs via OKX TEE Agentic Wallet, and broadcasts to X Layer. Every trade is a real swap — OKB → USDC — with a real txHash on OKLink.
+
+### 4. Profit Compounding
+
+Orchestrator monitors the mesh economy every cycle:
+- Tracks total USDG earned (x402 settlements) vs. total OKB spent (swaps)
+- Derives earn/spend ratio and mesh runway
+- When surplus accumulates: compounds earnings back into OKB capital, growing the mesh's trading position without external funding
 
 ---
 
 ## Architecture
 
-### Agent mesh (4 agents, each with its own TEE wallet)
+### Tech Stack
 
-| Agent | Role | OKX APIs used |
-|---|---|---|
-| Scout | Signal detection | `okx-dex-signal`, `okx-dex-token` (hot-token, trending) |
-| Analyst | Risk scoring | `okx-security`, `okx-dex-token` (advanced, holders), `okx-dex-swap` (quote) |
-| Executor | Trade execution | `okx-dex-swap` (build tx), `okx-agentic-wallet` (TEE sign + broadcast) |
-| Orchestrator | Governance + metrics | `okx-wallet-portfolio`, `okx-agentic-wallet` (history) |
+| Layer | Tech |
+|---|---|
+| Runtime | Bun + Hono (TypeScript) |
+| Chain | X Layer (chainId 196, native OKB) |
+| Wallets | OKX TEE Agentic Wallet (4 sub-accounts, 1 API key) |
+| Payments | x402 + EIP-3009 (USDG, 6 decimals) |
+| Swap | OKX DEX Aggregator (OKB → USDC via Uniswap V3) |
+| AI | OpenAI GPT-4o (Analyst risk scoring) |
+| Database | Supabase (signals, scores, trades, payments, metrics) |
+| Frontend | Next.js + TanStack Query + shadcn/ui |
+| Deploy | Railway (backend) + Vercel (frontend) |
 
-### x402 payment flow
+### OKX OnchainOS APIs
 
-Each agent's intelligence endpoint is protected by the x402 protocol:
+| API | Used by |
+|---|---|
+| `/api/v6/dex/signal/token/significant` | Scout: smart money signals |
+| `/api/v6/dex/market/token/hot-token` | Scout: trending token fallback |
+| `/api/v6/dex/token/security` | Analyst: honeypot + rug scan |
+| `/api/v6/dex/token/token-list` | Analyst: holder concentration |
+| `/api/v6/dex/aggregator/quote` | Analyst: price impact check |
+| `/api/v6/dex/aggregator/swap` | Executor: swap calldata |
+| `/api/v6/x402/verify` + `/x402/settle` | Scout + Analyst: payment settlement |
+| `/priapi/v5/wallet/agentic/auth/ak/init` | All agents: TEE session auth |
+| `/priapi/v5/wallet/agentic/pre-transaction/unsignedInfo` | Executor: AA tx signing |
+| `/priapi/v5/wallet/agentic/pre-transaction/broadcast-transaction` | Executor: AA broadcast |
+
+### Mesh Cycle (every 30 minutes)
 
 ```
-1. Analyst probes /scout/signal → receives 402 + X-Payment-Required header
-2. Analyst calls TEE: gen-msg-hash → HPKE decrypt → Ed25519 sign (EIP-3009)
-3. Analyst replays request with X-Payment: base64(EIP-3009 transferWithAuthorization)
-4. Scout server calls OKX /api/v6/x402/verify → validates signature
-5. Scout server calls OKX /api/v6/x402/settle → executes on-chain USDG transfer
-6. Scout returns signal data + X-Payment-Response with txHash
+Tick fires →
+  Scout: fetch smart money signals from X Layer, pick highest strength, store in Supabase
+  Analyst: pay Scout (x402), score signal with OKX security + GPT-4o, publish behind x402
+  Executor: pay Analyst (x402), if score ≥ 40 → build + sign + broadcast OKB→USDC swap
+  Orchestrator: aggregate metrics, compute earn/spend ratio, compound surplus if profitable
+→ Dashboard updates with new trade, payment proofs, agent health
 ```
-
-Same flow for Executor → Analyst (`/analyst/score`).
-
-### TEE wallet signing
-
-All four agents use OKX TEE agentic wallets (per-account sessions):
-
-```
-ak/init → ak/verify (HMAC signed, accountId scoped)
-→ preTransactionUnsignedInfo (AA wallet UserOp)
-→ broadcastAgenticTransaction
-```
-
-### Tech stack
-
-- **Runtime**: Bun + Hono (TypeScript)
-- **Chain**: X Layer (chainId 196, native OKB)
-- **Swap**: OKX DEX Aggregator (OKB → USDC via Uniswap V3)
-- **Wallet**: OKX TEE Agentic Wallet (4 sub-accounts under 1 API key)
-- **Payments**: x402 + EIP-3009 (USDG, 6 decimals)
-- **AI**: OpenAI GPT-4o (Analyst scoring only)
-- **Database**: Supabase (signals, scores, trades, metrics)
-- **Frontend**: Next.js + TanStack Query + shadcn/ui
 
 ---
 
-## Repo structure
+## Repo Structure
 
 ```
 liquidmesh-xlayer/
 ├── src/
 │   ├── agents/
-│   │   ├── scout/        # Signal detection
-│   │   ├── analyst/      # Risk scoring (OpenAI)
-│   │   ├── executor/     # Trade execution
-│   │   └── orchestrator/ # Governance + metrics
+│   │   ├── scout/          # OKX signal APIs → Supabase + EventBus
+│   │   ├── analyst/        # x402 pay Scout → GPT-4o score → x402 endpoint
+│   │   ├── executor/       # x402 pay Analyst → OKX DEX swap → txHash
+│   │   └── orchestrator/   # Metrics + earn/spend ratio + profit compounding
 │   ├── services/onchainos/
-│   │   ├── agentic-wallet.ts  # TEE auth + signing
+│   │   ├── agentic-wallet.ts  # TEE auth + UserOp signing
 │   │   ├── swap.ts            # OKX DEX aggregator
-│   │   ├── payments.ts        # x402 client + server
+│   │   ├── payments.ts        # x402 client + guard middleware
+│   │   ├── portfolio.ts       # Wallet balance queries
 │   │   └── gateway.ts         # Tx simulation + broadcast
 │   ├── routes/
-│   │   ├── scout.ts      # x402-protected signal endpoint
-│   │   ├── analyst.ts    # x402-protected score endpoint
-│   │   └── mesh.ts       # /mesh/tick orchestration
-│   └── ...
+│   │   ├── scout.ts      # x402-guarded: POST /scout/signal
+│   │   ├── analyst.ts    # x402-guarded: POST /analyst/score
+│   │   └── mesh.ts       # /mesh/tick · /mesh/status · /mesh/summary · /mesh/economy
+│   └── memory/db.ts      # Supabase: signals, scores, trades, payments, metrics
 └── frontend/             # Next.js dashboard
 ```
 
 ---
 
-## Deployed infrastructure
+## Deployed Infrastructure
 
 | Service | Host | URL |
 |---|---|---|
+| Frontend | Vercel | `https://liquidmeshfi.xyz` |
 | Backend API | Render | `https://liquidmesh.onrender.com` |
-| Frontend | Vercel | Set `NEXT_PUBLIC_API_URL=https://liquidmesh.onrender.com` |
 
 Trigger a live tick: `curl -X POST https://liquidmesh.onrender.com/mesh/tick`
 
+View mesh economy: `curl https://liquidmesh.onrender.com/mesh/economy`
+
 ---
 
-## Running locally
+## Running Locally
 
 ```bash
-# 1. Install dependencies
+# Install dependencies
 bun install
 
-# 2. Configure environment
+# Configure environment
 cp .env.example .env
-# Fill in: OKX_API_KEY, OKX_SECRET_KEY, OKX_PASSPHRASE, OPENAI_API_KEY
-# Fill in: SUPABASE_URL, SUPABASE_KEY
-# Fill in: 4 agent wallet addresses + account IDs
+# Fill in OKX_API_KEY, OKX_SECRET_KEY, OKX_PASSPHRASE
+# Fill in OPENAI_API_KEY, SUPABASE_URL, SUPABASE_KEY
+# Fill in 4 agent wallet addresses + account IDs
 
-# 3. Start backend
+# Start backend
 bun dev          # :3001
 
-# 4. Trigger a mesh tick
+# Trigger a mesh tick (runs all 4 agents sequentially)
 curl -X POST http://localhost:3001/mesh/tick
 
-# 5. Start frontend (separate terminal)
+# View economy metrics
+curl http://localhost:3001/mesh/economy
+
+# Start frontend (separate terminal)
 cd frontend && bun dev   # :3000
 ```
 
-### OKX wallet setup
+### OKX Wallet Setup
 
 ```bash
 # Install onchainos CLI
 curl -sSL https://raw.githubusercontent.com/okx/onchainos-skills/latest/install.sh | sh
 
-# Login with API key
+# Login
 onchainos wallet login
 
-# Create 4 sub-accounts
-onchainos wallet add  # repeat 4 times, note account IDs
+# Create 4 sub-accounts (one per agent)
+onchainos wallet add   # repeat 4x — note each account ID
 
-# Get addresses for X Layer (chain 196)
+# Get X Layer addresses (chain 196)
 onchainos wallet addresses --chain 196
 ```
 
 ---
 
-## Environment variables
+## Environment Variables
 
 ```bash
+# OKX OnchainOS
 OKX_API_KEY=
 OKX_SECRET_KEY=
 OKX_PASSPHRASE=
 
+# AI + Database
 OPENAI_API_KEY=
 SUPABASE_URL=
 SUPABASE_KEY=
 
+# Agent wallets (1 API key, 4 sub-accounts)
 SCOUT_ACCOUNT_ID=
 SCOUT_WALLET_ADDRESS=
 ANALYST_ACCOUNT_ID=
@@ -179,39 +221,22 @@ EXECUTOR_WALLET_ADDRESS=
 ORCHESTRATOR_ACCOUNT_ID=
 ORCHESTRATOR_WALLET_ADDRESS=
 
+# Runtime
 PUBLIC_API_URL=http://localhost:3001
 EXECUTOR_SWAP_AMOUNT_OKB=0.001
-ENABLE_AGENTS=false         # true = auto-start continuous mode
+ENABLE_AGENTS=false          # true = auto-start 30min loop on boot
 CHECK_INTERVAL_MINUTES=30
 ```
 
 ---
 
-## OKX OnchainOS APIs used
+## Hackathon Qualification
 
-| API | Used for |
-|---|---|
-| `/api/v6/dex/market/token/hot-token` | Scout: signal detection |
-| `/api/v6/dex/signal/token/significant` | Scout: smart money signals |
-| `/api/v6/dex/token/security` | Analyst: honeypot + risk scan |
-| `/api/v6/dex/token/token-list` | Analyst: token metadata |
-| `/api/v6/dex/aggregator/quote` | Analyst: price impact check |
-| `/api/v6/dex/aggregator/swap` | Executor: swap calldata |
-| `/api/v6/x402/verify` | Scout/Analyst: payment verification |
-| `/api/v6/x402/settle` | Scout/Analyst: on-chain settlement |
-| `/priapi/v5/wallet/agentic/auth/ak/init` | All agents: TEE auth |
-| `/priapi/v5/wallet/agentic/auth/ak/verify` | All agents: session creation |
-| `/priapi/v5/wallet/agentic/pre-transaction/unsignedInfo` | Executor: AA tx signing |
-| `/priapi/v5/wallet/agentic/pre-transaction/broadcast-transaction` | Executor: AA tx broadcast |
-
----
-
-## Hackathon qualification
-
-- [x] Builds on X Layer ecosystem (chainId 196, OKB native, USDC on X Layer)
-- [x] Integrates x402 payments (EIP-3009 USDG micropayments between agents)
-- [x] Real X Layer transaction: `0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570`
-- [x] Open-source on GitHub
+- [x] **X Layer ecosystem** — chainId 196, OKB native, USDC on X Layer DEX
+- [x] **x402 agentic payments** — EIP-3009 USDG micropayments between agents, settled via OKX
+- [x] **Real X Layer transaction** — `0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570`
+- [x] **Multi-agent orchestration** — 4 sovereign agents with independent TEE wallets
+- [x] **Open-source** on GitHub
 
 ---
 
