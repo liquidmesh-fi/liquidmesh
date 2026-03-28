@@ -191,7 +191,8 @@ export async function preTransactionUnsignedInfo(params: {
   chainIndex: number;
   fromAddr: string;
   toAddr: string;
-  value: string;
+  amount: string;
+  contractAddr?: string;
   inputData?: string;
   gasLimit?: string;
   aaDexTokenAddr?: string;
@@ -205,8 +206,9 @@ export async function preTransactionUnsignedInfo(params: {
       chainIndex: params.chainIndex,
       fromAddr: params.fromAddr,
       toAddr: params.toAddr,
-      amount: params.value,
+      amount: params.amount,
       sessionCert: session.sessionCert,
+      ...(params.contractAddr ? { contractAddr: params.contractAddr } : {}),
       ...(params.inputData ? { inputData: params.inputData } : {}),
       ...(params.gasLimit ? { gasLimit: params.gasLimit } : {}),
       ...(params.aaDexTokenAddr ? { aaDexTokenAddr: params.aaDexTokenAddr } : {}),
