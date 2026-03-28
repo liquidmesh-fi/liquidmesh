@@ -26,7 +26,7 @@ interface SwapTransactionResponse {
     tx: {
       data: string;
       from: string;
-      gas: string;
+      gasLimit: string;
       gasPrice: string;
       to: string;
       value: string;
@@ -98,7 +98,7 @@ export async function buildSwapTransaction(
         toTokenAddress: toToken,
         amount: fromAmount,
         userWalletAddress: userAddress,
-        slippagePercent: slippage,
+        slippage: slippage,
       },
     },
   );
@@ -109,7 +109,7 @@ export async function buildSwapTransaction(
   return {
     data: swap.data,
     from: swap.from,
-    gas: swap.gas,
+    gas: swap.gasLimit,
     gasPrice: swap.gasPrice,
     to: swap.to,
     value: swap.value,

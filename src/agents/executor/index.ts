@@ -81,7 +81,7 @@ export class ExecutorAgent extends Agent {
         this.config.walletAddress,
         OKB_NATIVE,
         XLAYER_USDC,
-        "0.5",
+        "0.005",
       );
 
       this.log(`Swap tx: to=${swapTx.to} value=${swapTx.value} gas=${swapTx.gas}`);
