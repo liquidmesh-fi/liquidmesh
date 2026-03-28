@@ -7,9 +7,9 @@
 
 ## Current focus
 
-**Phase:** Core implementation complete. Integration + testing next.
+**Phase:** Frontend complete. Deploy next.
 
-**Goal (48 hours):** Working demo with live X Layer transactions: Scout detects signal → Analyst scores → Executor swaps OKB→USDG → txHash captured.
+**Goal:** Get backend on Render + frontend on Vercel, wire NEXT_PUBLIC_API_URL, fund executor wallet after KYC.
 
 ---
 
@@ -19,74 +19,66 @@
 
 - ✅ `src/env.ts` — Zod env validation (all vars)
 - ✅ `src/types.ts` — shared TypeScript types
-- ✅ `src/comms/event-bus.ts` — typed EventBus (mesh:tick, signal:ready, score:ready, trade:done, budget:alert, agent:error)
-- ✅ `src/memory/db.ts` — Supabase client + queries (5 tables: signals, scores, trades, payments, metrics)
-- ✅ `src/config/chains.ts` — X Layer constants (chain 196, OKB, USDG)
+- ✅ `src/comms/event-bus.ts` — typed EventBus
+- ✅ `src/memory/db.ts` — Supabase client + queries (5 tables)
+- ✅ `src/config/chains.ts` — X Layer constants (chain 196, OKB, USDC, USDG)
 - ✅ `src/config/agents.ts` — agent config from env
-- ✅ `src/services/onchainos/` — all 10 service files:
-  - `client.ts` — OKX HMAC signing + okxFetch
-  - `agentic-wallet.ts` — TEE session, balance, broadcast
-  - `payments.ts` — x402 probe/sign/settle/verify
-  - `signal.ts` — smart money signal API
-  - `token.ts` — trending tokens (fallback)
-  - `market.ts` — price data
-  - `security.ts` — token security scan
-  - `swap.ts` — quote + build swap tx
-  - `gateway.ts` — simulate + broadcast + status
-  - `portfolio.ts` — wallet balances
-- ✅ `src/agents/agent.ts` — abstract Agent base class
-- ✅ `src/agents/agent-manager.ts` — lifecycle + tick loop + runOnce()
-- ✅ `src/agents/scout/` — Signal detection + trending fallback
-- ✅ `src/agents/analyst/` — OpenAI scoring + x402 payment to Scout
-- ✅ `src/agents/executor/` — Swap execution + x402 payment to Analyst
-- ✅ `src/agents/orchestrator/` — Metrics aggregation + budget monitoring
-- ✅ `src/agents/index.ts` — registerAgents + startMesh + getMeshStatus
-- ✅ `src/system-prompts/` — per-agent LLM prompts
-- ✅ `src/routes/scout.ts` — x402-protected /scout/signal
-- ✅ `src/routes/analyst.ts` — x402-protected /analyst/score
-- ✅ `src/routes/mesh.ts` — /mesh/status|start|stop|trades|signals|payments|summary|tick
-- ✅ `src/app.ts` — Hono app with CORS
-- ✅ `src/setup.ts` — init + conditional mesh start
-- ✅ `src/index.ts` — entry point (port 3001)
-- ✅ TypeScript: clean (0 src/ errors)
-- ✅ Backend port: 3001
+- ✅ `src/services/onchainos/` — all 10 service files (client, agentic-wallet, payments, signal, token, market, security, swap, gateway, portfolio)
+- ✅ `src/agents/` — 4 agents: Scout, Analyst, Executor, Orchestrator
+- ✅ `src/routes/` — scout.ts, analyst.ts, mesh.ts
+- ✅ `src/app.ts`, `src/setup.ts`, `src/index.ts`
+- ✅ Executor: direct OKX API (no CLI dep) — `preTransactionUnsignedInfo` + `broadcastAgenticTransaction`
+- ✅ Real txHash: `0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570` on X Layer
+- ✅ x402 payments: real OKX verify + settle endpoints wired
 
 ### Web (`frontend/`)
 
-- ✅ TanStack Query installed + configured (5s polling)
-- ✅ `lib/api.ts` — typed API client
-- ✅ `_components/providers.tsx` — QueryClientProvider
-- ✅ `_components/agent-card.tsx` — agent status card with wallet address
-- ✅ `_components/activity-feed.tsx` — live merged feed (trades + signals + payments)
-- ✅ `_components/trade-table.tsx` — trade history with status badges
-- ✅ `_components/mesh-controls.tsx` — start/stop + summary metrics
-- ✅ `_components/dashboard.tsx` — main layout: header + controls + agent grid + feed + table
-- ✅ Dark theme (#080b0f), Tailwind v4, no shadcn needed
+- ✅ Landing page at `/` — 9 sections (Nav, Hero, StatsBar, Features, HowItWorks, X402Section, FAQ, CTA, Footer)
+- ✅ Dashboard at `/dashboard` — agents, activity feed, trade table, mesh controls
+- ✅ OKX Wallet connect in dashboard header (wagmi + injected `window.okxwallet`, X Layer chain 196)
+- ✅ `lib/okx-wallet.ts` — hasOkxWallet, getOkxConnector helpers
+- ✅ Web3Provider wraps app (wagmi config, Sonner toaster)
+- ✅ TanStack Query 5s polling
+- ✅ `bun run build` passes clean
+
+### Deployment
+
+- ✅ `render.yaml` created (backend → Render, `bun run src/index.ts`)
+- ✅ Railway config deleted
+- ✅ Frontend → Vercel (connect `frontend/` subdir)
 
 ---
 
 ## What's next
 
-1. **Supabase schema** — create the 5 tables (signals, scores, trades, payments, metrics) in Supabase dashboard
-2. **Set up env** — copy .env.example, fill in real OKX API key + sub-account IDs + Supabase + OpenAI
-3. **Test locally** — `bun dev` (backend :3001) + `cd frontend && bun dev` (frontend :3000)
-4. **End-to-end test** — hit POST /mesh/tick to trigger one full cycle, verify txHash captured
-5. **Railway deploy** — push to GitHub, connect Railway to repo root
-6. **Vercel deploy** — connect `frontend/` subdirectory
+1. **Deploy backend** — push to Render, set all env vars
+2. **Deploy frontend** — connect Vercel to `frontend/` subdir, set `NEXT_PUBLIC_API_URL` to Render URL
+3. **Fund executor wallet** — needs >0.001 OKB per swap. User KYC pending (as of Mar 28). Wallet: `EXECUTOR_WALLET_ADDRESS` in env.
+4. **Test end-to-end** — POST /mesh/tick on live Render URL, verify txHash in dashboard
 
 ---
 
 ## Blockers
 
-- Supabase tables not created yet (need to run migrations manually via dashboard or SQL)
-- OKX sub-account IDs not provisioned yet (need real API key + 4 sub-account creation)
-- Executor uses demo txHash (prefixed `demo-`) — wire real TEE signing when wallets are ready
+- Executor wallet balance low (0.000688 OKB left after one swap on Mar 28). Needs funding after KYC.
+- Backend not yet deployed to Render (env vars not set).
+
+---
+
+## Key technical decisions (do not re-litigate)
+
+- **Executor value format**: `preTransactionUnsignedInfo` takes human-readable OKB (`"0.001"`), NOT wei. API multiplies by 1e18 internally.
+- **Swap route**: OKB → USDC only. OKB → USDG 4-hop route fails on X Layer AA wallet at <$0.10.
+- **Minimum swap**: `EXECUTOR_SWAP_AMOUNT_OKB=0.001`
+- **No CLI dep**: executor uses direct API, deploys cleanly on Render without onchainos binary.
+- **OKX Wallet connect**: wagmi injected connector targeting `window.okxwallet`, X Layer chainId 196.
+- **x402 USDG extra**: `{ name: "USDG", version: "2" }` (not version "1")
+- **Analyst threshold**: score >= 40 → execute (was 50). AI recommendation field ignored.
 
 ---
 
 ## Notes
 
-- Backend: port 3001, Frontend: port 3000 (standard Next.js)
-- x402 sign is simplified for demo — full TEE signing via OKX agentic wallet ready to wire in
-- Executor swap simulation path works; real broadcast needs funded TEE wallets
-- All OKX API calls go through `services/onchainos/` only (no direct calls in agents)
+- Backend: port 3001, Frontend: port 3000
+- All OKX API calls go through `services/onchainos/` only
+- `ENABLE_AGENTS=false` on Render (trigger mesh manually via POST /mesh/tick)
