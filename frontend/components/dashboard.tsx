@@ -8,7 +8,6 @@ import { AgentCard } from "./agent-card";
 import { ActivityFeed } from "./activity-feed";
 import { TradeTable } from "./trade-table";
 import { MeshControls } from "./mesh-controls";
-import { WalletButton } from "./wallet-button";
 import { api } from "@/lib/api";
 
 export function Dashboard() {
@@ -23,8 +22,8 @@ export function Dashboard() {
   return (
     <div className="min-h-screen bg-[#080b0f] text-white">
       {/* Header */}
-      <header className="border-b border-white/6 px-6 py-5">
-        <div className="max-w-[1360px] mx-auto flex items-center justify-between">
+      <header className="border-b border-white/6 py-5">
+        <div className="max-w-[1360px] mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
               src="/icon.png"
@@ -35,18 +34,15 @@ export function Dashboard() {
             />
             <h1 className="text-base font-semibold tracking-tight">LiquidMesh</h1>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs text-white/50">
-              <Image
-                src="/x-layer-white.png"
-                alt="X Layer"
-                width={14}
-                height={14}
-                className="object-contain opacity-70"
-              />
-              X Layer Mainnet
-            </div>
-            <WalletButton />
+          <div className="flex items-center gap-1.5 text-xs text-white/50">
+            <Image
+              src="/x-layer-white.png"
+              alt="X Layer"
+              width={14}
+              height={14}
+              className="object-contain opacity-70"
+            />
+            X Layer Mainnet
           </div>
         </div>
       </header>

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import dynamic from "next/dynamic";
 import React from "react";
 import { motion } from "motion/react";
 import {
@@ -17,15 +16,10 @@ import {
   Network,
   ExternalLink,
   Shield,
-  Wallet,
   Activity,
   Check,
 } from "lucide-react";
-
-const LavaLamp = dynamic(
-  () => import("./ui/fluid-blob").then((m) => m.LavaLamp),
-  { ssr: false },
-);
+import { FallingPattern } from "./ui/falling-pattern";
 
 // ─── Nav ────────────────────────────────────────────────────────────────────
 
@@ -128,9 +122,14 @@ export function LandingNav() {
 
 export function Hero() {
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <LavaLamp />
+    <section className="relative h-screen flex items-center justify-center overflow-hidden bg-[#080b0f]">
+      <div className="pointer-events-none absolute inset-0 opacity-30">
+        <FallingPattern
+          color="rgba(255,255,255,1)"
+          backgroundColor="#080b0f"
+          blurIntensity="1em"
+          duration={120}
+        />
       </div>
 
       <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 max-w-5xl mx-auto">
@@ -195,7 +194,7 @@ const STATS = [
 
 export function StatsBar() {
   return (
-    <div className="border-y border-white/6 bg-white/2 py-5">
+    <div className="border-y border-white/6 bg-[#0d1117] py-5">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-wrap justify-center md:justify-between gap-6 md:gap-0">
           {STATS.map((s, i) => (
@@ -611,13 +610,21 @@ export function FAQ() {
 export function CTA() {
   return (
     <section className="py-24 px-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="relative rounded-3xl border border-cyan-500/25 bg-[#0d1117] p-12 text-center overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.5)]"
         >
+          <div className="pointer-events-none absolute inset-0 opacity-10">
+            <FallingPattern
+              color="rgba(255,255,255,1)"
+              backgroundColor="#0d1117"
+              blurIntensity="1em"
+              duration={120}
+            />
+          </div>
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 size-[500px] rounded-full bg-cyan-500/12 blur-[100px]" />
             <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
