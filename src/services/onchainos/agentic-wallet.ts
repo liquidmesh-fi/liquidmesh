@@ -1,4 +1,6 @@
 import crypto from "node:crypto";
+import { Aead, CipherSuite, Kdf, Kem } from "hpke-js";
+import { keccak_256 } from "@noble/hashes/sha3.js";
 import { env } from "../../env";
 
 const OKX_BASE = "https://web3.okx.com";
@@ -51,6 +53,7 @@ export interface PreTxUnsignedInfo {
   signType: string;
   encoding: string;
   extraData: Record<string, unknown>;
+  authHashFor7702?: string;
 }
 
 // Per-account session cache — key is accountId
@@ -230,6 +233,122 @@ export async function broadcastAgenticTransaction(params: {
   return walletPost<{ pkgId: string; orderId: string; txHash: string }>(
     `${WALLET_PREFIX}/pre-transaction/broadcast-transaction`,
     params,
+    jwtHeaders(session.accessToken),
+  );
+}
+
+// ── Crypto helpers ────────────────────────────────────────────────────────────
+
+const HPKE_INFO = new TextEncoder().encode("okx-tee-sign");
+const ED25519_PKCS8_PREFIX = Buffer.from("302e020100300506032b657004220420", "hex");
+
+async function hpkeDecryptSessionSk(encryptedB64: string, sessionKeyB64: string): Promise<Uint8Array> {
+  const encrypted = Buffer.from(encryptedB64, "base64");
+  const skBytes = Buffer.from(sessionKeyB64, "base64");
+
+  if (skBytes.length !== 32) throw new Error(`session key must be 32 bytes, got ${skBytes.length}`);
+  if (encrypted.length <= 32) throw new Error(`encrypted blob too short: ${encrypted.length}`);
+
+  const enc = encrypted.subarray(0, 32);
+  const ciphertext = encrypted.subarray(32);
+
+  const suite = new CipherSuite({
+    kem: Kem.DhkemX25519HkdfSha256,
+    kdf: Kdf.HkdfSha256,
+    aead: Aead.Aes256Gcm,
+  });
+
+  const recipientKey = await suite.importKey(
+    "raw",
+    skBytes.buffer.slice(skBytes.byteOffset, skBytes.byteOffset + skBytes.byteLength) as ArrayBuffer,
+    false,
+  );
+  const ctx = await suite.createRecipientContext({ recipientKey, enc, info: HPKE_INFO });
+  const plaintext = await ctx.open(ciphertext, new Uint8Array(0));
+  const seed = new Uint8Array(plaintext);
+
+  if (seed.length !== 32) throw new Error(`decrypted seed must be 32 bytes, got ${seed.length}`);
+  return seed;
+}
+
+function ed25519Sign(seed: Uint8Array, message: Uint8Array): Uint8Array {
+  const der = Buffer.concat([ED25519_PKCS8_PREFIX, seed]);
+  const privateKey = crypto.createPrivateKey({ key: der, format: "der", type: "pkcs8" });
+  return new Uint8Array(crypto.sign(null, message, privateKey));
+}
+
+function ed25519SignEip191(hexHash: string, seed: Uint8Array): string {
+  const data = Buffer.from(hexHash.replace(/^0x/, ""), "hex");
+  const prefix = `\x19Ethereum Signed Message:\n${data.length}`;
+  const ethMsg = Buffer.concat([Buffer.from(prefix), data]);
+  const msgHash = keccak_256(ethMsg);
+  return Buffer.from(ed25519Sign(seed, msgHash)).toString("base64");
+}
+
+function ed25519SignEncoded(msg: string, seed: Uint8Array, encoding: string): string {
+  if (!msg) return "";
+  let msgBytes: Buffer;
+  if (encoding === "hex") {
+    msgBytes = Buffer.from(msg.replace(/^0x/, ""), "hex");
+  } else if (encoding === "base64") {
+    msgBytes = Buffer.from(msg, "base64");
+  } else {
+    msgBytes = Buffer.from(msg, "utf-8");
+  }
+  return Buffer.from(ed25519Sign(seed, msgBytes)).toString("base64");
+}
+
+/**
+ * Sign unsignedInfo and broadcast. Replaces the raw broadcastAgenticTransaction call
+ * when signing is required (AA wallet swap).
+ */
+export async function signAndBroadcast(params: {
+  accountId: string;
+  address: string;
+  chainIndex: string;
+  unsignedInfo: PreTxUnsignedInfo;
+}): Promise<{ pkgId: string; orderId: string; txHash: string }> {
+  const session = await getAuthedSession(params.accountId);
+
+  const seed = await hpkeDecryptSessionSk(session.encryptedSessionSk, session.sessionPrivateKey);
+
+  const msgForSign: Record<string, unknown> = {};
+
+  if (params.unsignedInfo.hash) {
+    msgForSign.signature = ed25519SignEip191(params.unsignedInfo.hash, seed);
+  }
+  if (params.unsignedInfo.unsignedTxHash) {
+    msgForSign.unsignedTxHash = params.unsignedInfo.unsignedTxHash;
+    msgForSign.sessionSignature = ed25519SignEncoded(
+      params.unsignedInfo.unsignedTxHash,
+      seed,
+      params.unsignedInfo.encoding,
+    );
+  }
+  if (params.unsignedInfo.unsignedTx) {
+    msgForSign.unsignedTx = params.unsignedInfo.unsignedTx;
+  }
+  if (session.sessionCert) {
+    msgForSign.sessionCert = session.sessionCert;
+  }
+
+  const extraDataObj: Record<string, unknown> = {
+    ...(typeof params.unsignedInfo.extraData === "object" ? params.unsignedInfo.extraData : {}),
+    checkBalance: true,
+    uopHash: params.unsignedInfo.uopHash,
+    encoding: params.unsignedInfo.encoding,
+    signType: params.unsignedInfo.signType,
+    msgForSign,
+  };
+
+  return walletPost<{ pkgId: string; orderId: string; txHash: string }>(
+    `${WALLET_PREFIX}/pre-transaction/broadcast-transaction`,
+    {
+      accountId: params.accountId,
+      address: params.address,
+      chainIndex: params.chainIndex,
+      extraData: JSON.stringify(extraDataObj),
+    },
     jwtHeaders(session.accessToken),
   );
 }

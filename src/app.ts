@@ -10,10 +10,10 @@ export function createApp() {
   app.use(
     "*",
     cors({
-      origin: ["http://localhost:3001", process.env.FRONTEND_URL ?? ""],
+      origin: "*",
       allowMethods: ["GET", "POST", "OPTIONS"],
       allowHeaders: ["Content-Type", "X-Payment", "Authorization"],
-      exposeHeaders: ["X-Payment-Required", "X-Payment-Response"],
+      exposeHeaders: ["X-Payment-Required", "X-Payment-Response", "X-Payment"],
     }),
   );
 

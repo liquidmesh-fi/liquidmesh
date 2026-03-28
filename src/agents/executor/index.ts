@@ -4,7 +4,7 @@ import type { AgentConfig } from "../../config/agents";
 import { getSwapQuote, buildSwapTransaction } from "../../services/onchainos/swap";
 import {
   preTransactionUnsignedInfo,
-  broadcastAgenticTransaction,
+  signAndBroadcast,
 } from "../../services/onchainos/agentic-wallet";
 import { settleX402 } from "../../services/onchainos/payments";
 import { insertTrade } from "../../memory/db";
@@ -100,16 +100,15 @@ export class ExecutorAgent extends Agent {
         throw new Error(`Pre-transaction failed: ${unsignedInfo.executeErrorMsg}`);
       }
 
-      const broadcastResult = await broadcastAgenticTransaction({
+      this.log(`unsignedInfo: hash=${unsignedInfo.hash} uopHash=${unsignedInfo.uopHash} signType=${unsignedInfo.signType} encoding=${unsignedInfo.encoding}`);
+      this.log(`extraData=${JSON.stringify(unsignedInfo.extraData)}`);
+
+      const broadcastResult = await signAndBroadcast({
         accountId: this.config.accountId,
         address: swapTx.from,
         chainIndex: XLAYER_CHAIN_INDEX,
-        extraData: JSON.stringify(unsignedInfo.extraData),
+        unsignedInfo,
       });
-
-      this.log(`unsignedInfo keys: ${Object.keys(unsignedInfo).join(", ")}`);
-      this.log(`unsignedInfo.hash=${unsignedInfo.hash} uopHash=${unsignedInfo.uopHash} signType=${(unsignedInfo as any).signType} encoding=${(unsignedInfo as any).encoding}`);
-      this.log(`extraData=${JSON.stringify(unsignedInfo.extraData)}`);
 
       const txHash = broadcastResult.txHash || broadcastResult.orderId;
       this.log(`Swap broadcast: ${txHash}`);
