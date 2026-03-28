@@ -367,11 +367,9 @@ CHECK_INTERVAL_MINUTES=30
 | Frontend    | Vercel | `https://liquidmeshfi.xyz`     |
 | Backend API | Render | `https://api.liquidmeshfi.xyz` |
 
-```
-
 ---
 
-## Roadmap
+## Roadmap (Phase 2)
 
 - [ ] Live USDG funding flow for agent wallets
 - [ ] Strategy plugins per agent (configurable risk thresholds)
@@ -386,4 +384,3 @@ Built with [OKX OnchainOS](https://web3.okx.com/onchain-os) on [X Layer](https:/
 ## License
 
 MIT
-```
