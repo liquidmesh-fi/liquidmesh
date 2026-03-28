@@ -11,9 +11,9 @@ LiquidMesh is an **autonomous multi-agent trading economy** on X Layer (chainId 
 
 ---
 
-## The Problem
+### The Problem
 
-Autonomous trading on a new chain like X Layer requires three simultaneous capabilities running in coordination:
+Autonomous trading requires three simultaneous capabilities running in coordination:
 
 1. **Signal detection** — knowing which tokens have real smart money interest
 2. **Risk evaluation** — filtering honeypots, illiquid tokens, and high-risk opportunities
@@ -27,21 +27,8 @@ Single-agent systems hardcode all three into one process. That creates a bottlen
 
 LiquidMesh separates each concern into a **sovereign agent** — an independent process with its own wallet, its own revenue stream, and its own accountability.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    THE AGENT ECONOMY                            │
-│                                                                 │
-│   Scout          Analyst         Executor       Orchestrator    │
-│  ┌──────┐  x402 ┌────────┐ x402 ┌──────────┐  ┌─────────────┐ │
-│  │ TEE  │──────▶│  TEE   │──────▶│   TEE    │  │    TEE      │ │
-│  │wallet│       │ wallet │       │  wallet  │  │   wallet    │ │
-│  └──────┘       └────────┘       └──────────┘  └─────────────┘ │
-│  Earns USDG   Pays+Earns USDG  Pays USDG,      Governs mesh,   │
-│  sells signal  scores+sells    executes swap    compounds       │
-└─────────────────────────────────────────────────────────────────┘
-```
-
 Each agent:
+
 - Has a **dedicated OKX TEE Agentic Wallet** — hardware-secured, non-custodial
 - Has a **defined revenue model** — earns USDG by selling intelligence to the next agent
 - Operates **independently** — if one fails, the others continue
@@ -93,35 +80,11 @@ Orchestrator
 
 The mesh is designed to be **self-sustaining**: x402 earnings from Scout and Analyst flow back into the system, while Executor's swap value stays in the wallet (OKB → USDC, same address).
 
----
-
-## Live Proof
-
-Real X Layer swap executed by the Executor agent:
-
-**`0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570`**
-
-[View on OKLink →](https://www.oklink.com/xlayer/tx/0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570)
-
----
-
-## Hackathon Qualification
-
-| Requirement | Status |
-|---|---|
-| Builds on X Layer ecosystem | ✅ chainId 196, OKB native, USDC on X Layer |
-| x402 agentic payments | ✅ EIP-3009 USDG micropayments between agents |
-| Real X Layer transaction | ✅ `0x6923142bcd…` on OKLink |
-| Multi-agent collaboration | ✅ 4 sovereign agents with independent TEE wallets |
-| Open-source | ✅ Public GitHub repository |
-
----
-
 ## Docs Index
 
-| File | Contents |
-|---|---|
-| `00-overview.md` | This file — what, why, and how |
-| `01-architecture.md` | System design, agent internals, data flow, DB schema |
-| `02-setup.md` | Local dev, OKX wallet setup, deployment |
-| `03-testing.md` | How to test end-to-end, API reference, troubleshooting |
+| File                 | Contents                                               |
+| -------------------- | ------------------------------------------------------ |
+| `00-overview.md`     | This file — what, why, and how                         |
+| `01-architecture.md` | System design, agent internals, data flow, DB schema   |
+| `02-setup.md`        | Local dev, OKX wallet setup, deployment                |
+| `03-testing.md`      | How to test end-to-end, API reference, troubleshooting |
