@@ -90,7 +90,7 @@ analystRouter.get("/score", async (c) => {
     const latest = scores?.[0] ?? null;
 
     await insertPayment({
-      from_agent: settlement.payer,
+      from_agent: "executor",
       to_endpoint: "/analyst/score",
       amount_usdg: X402_SCORE_PRICE,
       tx_hash: settlement.txHash,

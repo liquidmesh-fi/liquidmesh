@@ -9,6 +9,7 @@ import {
   getRecentTrades,
   getRecentSignals,
   getRecentPayments,
+  getRecentScores,
   getTradeSummary,
 } from "../memory/db";
 import type { ApiResponse } from "../types";
@@ -53,6 +54,12 @@ meshRouter.get("/signals", async (c) => {
   const limit = Number(c.req.query("limit") ?? "10");
   const signals = await getRecentSignals(limit);
   return c.json<ApiResponse<typeof signals>>({ success: true, data: signals });
+});
+
+meshRouter.get("/scores", async (c) => {
+  const limit = Number(c.req.query("limit") ?? "10");
+  const scores = await getRecentScores(limit);
+  return c.json<ApiResponse<typeof scores>>({ success: true, data: scores });
 });
 
 meshRouter.get("/payments", async (c) => {

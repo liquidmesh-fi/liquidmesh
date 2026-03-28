@@ -85,7 +85,7 @@ scoutRouter.get("/signal", async (c) => {
     const latest = signals[0] ?? null;
 
     await insertPayment({
-      from_agent: settlement.payer,
+      from_agent: "analyst",
       to_endpoint: "/scout/signal",
       amount_usdg: X402_SIGNAL_PRICE,
       tx_hash: settlement.txHash,

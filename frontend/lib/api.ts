@@ -52,6 +52,17 @@ export interface Payment {
   purpose: "signal" | "score";
 }
 
+export interface Score {
+  id: string;
+  created_at: string;
+  signal_id: string;
+  token_address: string;
+  score: number;
+  recommendation: "execute" | "skip";
+  reason: string;
+  risk_factors: string[];
+}
+
 export interface TradeSummary {
   total: number;
   success: number;
@@ -76,9 +87,15 @@ export const api = {
   getPayments: () =>
     apiFetch<{ success: boolean; data: Payment[] }>("/mesh/payments"),
 
+  getScores: () =>
+    apiFetch<{ success: boolean; data: Score[] }>("/mesh/scores"),
+
   startMesh: () =>
     apiFetch<{ success: boolean }>("/mesh/start", { method: "POST" }),
 
   stopMesh: () =>
     apiFetch<{ success: boolean }>("/mesh/stop", { method: "POST" }),
+
+  runTick: () =>
+    apiFetch<{ success: boolean; data: Array<{ status: string; value: { success: boolean; message: string; data?: Record<string, unknown> } }> }>("/mesh/tick", { method: "POST" }),
 };

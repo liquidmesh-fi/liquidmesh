@@ -138,6 +138,16 @@ export async function getRecentSignals(limit = 10): Promise<Signal[]> {
   return (data ?? []) as Signal[];
 }
 
+export async function getRecentScores(limit = 10): Promise<Score[]> {
+  const { data, error } = await supabase
+    .from("scores")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(`getRecentScores: ${error.message}`);
+  return (data ?? []) as Score[];
+}
+
 export async function getRecentPayments(limit = 20): Promise<Payment[]> {
   const { data, error } = await supabase
     .from("payments")
