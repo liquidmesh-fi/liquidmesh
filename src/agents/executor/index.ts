@@ -91,7 +91,7 @@ export class ExecutorAgent extends Agent {
         chainIndex: Number(XLAYER_CHAIN_INDEX),
         fromAddr: swapTx.from,
         toAddr: swapTx.to,
-        value: swapAmountOkb,
+        value: swapAmountWei,
         inputData: swapTx.data,
       });
 
