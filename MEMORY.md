@@ -7,9 +7,9 @@
 
 ## Current focus
 
-**Phase:** Frontend complete. Deploy next.
+**Phase:** Both deployments live. Only blocker: executor wallet funding.
 
-**Goal:** Get backend on Render + frontend on Vercel, wire NEXT_PUBLIC_API_URL, fund executor wallet after KYC.
+**Goal:** Fund executor wallet after KYC → test end-to-end tick on live infra.
 
 ---
 
@@ -35,33 +35,36 @@
 
 - ✅ Landing page at `/` — 9 sections (Nav, Hero, StatsBar, Features, HowItWorks, X402Section, FAQ, CTA, Footer)
 - ✅ Dashboard at `/dashboard` — agents, activity feed, trade table, mesh controls
-- ✅ OKX Wallet connect in dashboard header (wagmi + injected `window.okxwallet`, X Layer chain 196)
-- ✅ `lib/okx-wallet.ts` — hasOkxWallet, getOkxConnector helpers
-- ✅ Web3Provider wraps app (wagmi config, Sonner toaster)
+- ✅ FallingPattern hero (replaced fluid-blob) — falling data streams aesthetic
+- ✅ ActivityFeed rewritten as terminal Mesh Log — GSAP char animation, line numbers, color-coded prefixes
+- ✅ TradeTable with expandable rows — analyst score, reason, risk factors, full tx hash
+- ✅ WalletButton removed — no purpose in autonomous agent system
+- ✅ Electric cyan (#22D3EE) primary color across all components
+- ✅ Per-agent Lucide icons + color system (Scout=cyan, Analyst=blue, Executor=violet, Orchestrator=amber)
 - ✅ TanStack Query 5s polling
 - ✅ `bun run build` passes clean
 
 ### Deployment
 
-- ✅ `render.yaml` created (backend → Render, `bun run src/index.ts`)
-- ✅ Railway config deleted
-- ✅ Frontend → Vercel (connect `frontend/` subdir)
+- ✅ **Backend live on Render**: `https://liquidmesh.onrender.com`
+- ✅ **Frontend live on Vercel** (URL from user)
+- ✅ `package.json` has `start` script: `bun src/index.ts`
+- ✅ Render build command: `bun install`, start: `bun start`
+- ✅ `ENABLE_AGENTS=false` on Render — trigger mesh via POST /mesh/tick
 
 ---
 
 ## What's next
 
-1. **Deploy backend** — push to Render, set all env vars
-2. **Deploy frontend** — connect Vercel to `frontend/` subdir, set `NEXT_PUBLIC_API_URL` to Render URL
-3. **Fund executor wallet** — needs >0.001 OKB per swap. User KYC pending (as of Mar 28). Wallet: `EXECUTOR_WALLET_ADDRESS` in env.
-4. **Test end-to-end** — POST /mesh/tick on live Render URL, verify txHash in dashboard
+1. **Fund executor wallet** — needs >0.001 OKB per swap. KYC pending as of Mar 28. Wallet: `EXECUTOR_WALLET_ADDRESS` in env.
+2. **Test end-to-end** — POST /mesh/tick on `https://liquidmesh.onrender.com/mesh/tick`, verify txHash in dashboard
+3. **Wire NEXT_PUBLIC_API_URL** — set to `https://liquidmesh.onrender.com` in Vercel env vars (if not already done)
 
 ---
 
 ## Blockers
 
-- Executor wallet balance low (0.000688 OKB left after one swap on Mar 28). Needs funding after KYC.
-- Backend not yet deployed to Render (env vars not set).
+- Executor wallet balance low (0.000688 OKB after one swap on Mar 28). Needs funding after KYC.
 
 ---
 
@@ -71,14 +74,16 @@
 - **Swap route**: OKB → USDC only. OKB → USDG 4-hop route fails on X Layer AA wallet at <$0.10.
 - **Minimum swap**: `EXECUTOR_SWAP_AMOUNT_OKB=0.001`
 - **No CLI dep**: executor uses direct API, deploys cleanly on Render without onchainos binary.
-- **OKX Wallet connect**: wagmi injected connector targeting `window.okxwallet`, X Layer chainId 196.
 - **x402 USDG extra**: `{ name: "USDG", version: "2" }` (not version "1")
 - **Analyst threshold**: score >= 40 → execute (was 50). AI recommendation field ignored.
+- **WalletButton removed**: agents have their own TEE wallets, no user wallet interaction needed.
+- **Render port**: backend binds to 3001, Render auto-detects and routes correctly.
 
 ---
 
 ## Notes
 
-- Backend: port 3001, Frontend: port 3000
+- Backend: `https://liquidmesh.onrender.com` (port 3001 internally)
+- Frontend: Vercel (set `NEXT_PUBLIC_API_URL=https://liquidmesh.onrender.com`)
 - All OKX API calls go through `services/onchainos/` only
-- `ENABLE_AGENTS=false` on Render (trigger mesh manually via POST /mesh/tick)
+- `ENABLE_AGENTS=false` — trigger mesh manually via POST /mesh/tick

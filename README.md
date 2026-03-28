@@ -4,6 +4,8 @@
 
 **X Layer OnchainOS AI Hackathon submission.**
 
+**Live:** [https://liquidmesh.onrender.com](https://liquidmesh.onrender.com) (backend API) · Frontend on Vercel
+
 ---
 
 ## What it does
@@ -103,6 +105,17 @@ liquidmesh-xlayer/
 │   └── ...
 └── frontend/             # Next.js dashboard
 ```
+
+---
+
+## Deployed infrastructure
+
+| Service | Host | URL |
+|---|---|---|
+| Backend API | Render | `https://liquidmesh.onrender.com` |
+| Frontend | Vercel | Set `NEXT_PUBLIC_API_URL=https://liquidmesh.onrender.com` |
+
+Trigger a live tick: `curl -X POST https://liquidmesh.onrender.com/mesh/tick`
 
 ---
 
