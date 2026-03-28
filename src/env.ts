@@ -25,7 +25,7 @@ const schema = z.object({
 
   // Runtime config
   PUBLIC_API_URL: z.string().url().default("http://localhost:3000"),
-  EXECUTOR_SWAP_AMOUNT_OKB: z.string().default("0.01"),
+  EXECUTOR_SWAP_AMOUNT_OKB: z.string().default("0.001"),
   CHECK_INTERVAL_MINUTES: z.coerce.number().default(30),
   ENABLE_AGENTS: z
     .string()
