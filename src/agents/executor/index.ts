@@ -93,9 +93,6 @@ export class ExecutorAgent extends Agent {
         toAddr: swapTx.to,
         value: swapAmountOkb,
         inputData: swapTx.data,
-        gasLimit: swapTx.gas,
-        aaDexTokenAddr: XLAYER_USDG,
-        aaDexTokenAmount: swapTx.minOutAmount,
       });
 
       if (!unsignedInfo.executeResult) {
