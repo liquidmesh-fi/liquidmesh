@@ -13,7 +13,10 @@
 ![x402](https://img.shields.io/badge/Payments-x402-FF69B4?style=flat-square&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
-**Live:** https://liquidmeshfi.xyz · **API:** https://api.liquidmeshfi.xyz · **Chain:** X Layer (chainId 196) · **Track:** AI DeFi/Trading · **Executor Tx:** [OKLink →](https://www.oklink.com/xlayer/tx/0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570)
+**[Video Demo](https://youtu.be/CmT-r7lpnOk)** · **Live:** https://liquidmeshfi.xyz · **API:** https://api.liquidmeshfi.xyz · **Chain:** X Layer (chainId 196) · **Track:** AI DeFi/Trading
+
+**Live Transactions on X Layer:**
+[0xcdd413f9...20d37f](https://www.oklink.com/xlayer/tx/0xcdd413f9edcec7586f07015211fe2582af995e1bc8d71771171d7617b220d37f) · [0x624cd71c...5bdff](https://www.oklink.com/xlayer/tx/0x624cd71c21ed0a9a49ea1243a3b26e2b89cd014695c108d25cdee92a5ce5bdff) · [0x6923142b...e76570](https://www.oklink.com/xlayer/tx/0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570)
 
 </div>
 
