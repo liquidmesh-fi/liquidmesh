@@ -31,33 +31,17 @@ const LavaLamp = dynamic(
 
 export function LandingNav() {
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const [scrolled, setScrolled] = React.useState(false);
-
-  React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   const links = [
     { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
     { label: "FAQ", href: "#faq" },
-    {
-      label: "GitHub",
-      href: "https://github.com/liquidmesh-fi/liquidmesh",
-      target: "_blank",
-    },
   ];
 
   return (
     <header className="fixed top-0 z-50 w-full px-4">
       <nav
-        className={`mx-auto mt-3 max-w-7xl px-6 transition-all duration-300 ${
-          scrolled
-            ? "bg-[#080b0f]/85 backdrop-blur-xl rounded-2xl border border-white/8 shadow-xl"
-            : ""
-        }`}
+        className="mx-auto mt-3 max-w-7xl px-6 bg-[#0d1117]/90 backdrop-blur-xl rounded-2xl border border-white/8 shadow-xl"
       >
         <div className="flex items-center justify-between py-4">
           <Link href="/" className="flex items-center gap-2.5">
@@ -79,7 +63,6 @@ export function LandingNav() {
               <li key={l.label}>
                 <Link
                   href={l.href}
-                  target={l.target}
                   className="text-sm text-white/50 hover:text-white transition-colors"
                   onClick={() => setMenuOpen(false)}
                 >
@@ -91,7 +74,7 @@ export function LandingNav() {
 
           <Link
             href="/dashboard"
-            className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-teal-500 text-black text-sm font-semibold hover:bg-teal-400 transition-colors"
+            className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-cyan-400 text-black text-sm font-semibold hover:bg-cyan-300 transition-colors"
           >
             Launch App
             <ArrowRight className="size-3.5" />
@@ -129,7 +112,7 @@ export function LandingNav() {
             ))}
             <Link
               href="/dashboard"
-              className="block w-full text-center px-5 py-2.5 rounded-lg bg-teal-500 text-black text-sm font-semibold"
+              className="block w-full text-center px-5 py-2.5 rounded-lg bg-cyan-400 text-black text-sm font-semibold"
               onClick={() => setMenuOpen(false)}
             >
               Launch App
@@ -155,9 +138,9 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/15 border border-teal-500/30 text-teal-700 text-xs font-semibold mb-8"
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 text-xs font-semibold mb-8"
         >
-          <span className="size-1.5 rounded-full bg-teal-500 animate-pulse" />
+          <span className="size-1.5 rounded-full bg-cyan-400 animate-pulse" />
           Built on X Layer · OKX OnchainOS
         </motion.div>
 
@@ -165,7 +148,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mix-blend-exclusion text-white leading-tight"
+          className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-tight drop-shadow-2xl"
         >
           Autonomous <br />
           Trading, Onchain
@@ -175,7 +158,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25 }}
-          className="mt-6 text-base md:text-lg mix-blend-exclusion text-white/90 max-w-2xl mx-auto leading-relaxed"
+          className="mt-6 text-base md:text-lg text-white/80 max-w-2xl mx-auto leading-relaxed"
         >
           Four specialized AI agents — each with its own TEE wallet — that
           scout signals, evaluate risk, execute swaps, and govern the mesh.
@@ -190,39 +173,10 @@ export function Hero() {
         >
           <Link
             href="/dashboard"
-            className="px-8 py-3.5 rounded-xl bg-teal-600 text-white text-base font-semibold hover:bg-teal-500 transition-colors shadow-lg shadow-teal-900/20"
+            className="px-8 py-3.5 rounded-xl bg-cyan-400 text-black text-base font-semibold hover:bg-cyan-300 transition-colors shadow-lg shadow-cyan-900/30"
           >
             Launch the Mesh
           </Link>
-          <a
-            href="https://github.com/liquidmesh-fi/liquidmesh"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-black/10 text-black/70 text-base font-medium border border-black/15 hover:bg-black/15 transition-colors backdrop-blur-sm"
-          >
-            <GitBranch className="size-4" />
-            View on GitHub
-          </a>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-12 inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-black/8 border border-black/12 text-xs font-mono backdrop-blur-sm"
-        >
-          <span className="text-black/40">Latest tx</span>
-          <a
-            href="https://www.oklink.com/xlayer/tx/0x6923142bcd0136e53107d16fd7da05ca4b215bc16ff809409f99202523e76570"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-teal-700 hover:text-teal-600 inline-flex items-center gap-1 transition-colors"
-          >
-            0x6923…6570
-            <ExternalLink className="size-3" />
-          </a>
-          <span className="text-black/20">·</span>
-          <span className="text-black/40">X Layer</span>
         </motion.div>
       </div>
     </section>
@@ -232,11 +186,11 @@ export function Hero() {
 // ─── Stats Bar ───────────────────────────────────────────────────────────────
 
 const STATS = [
-  { label: "Chain", value: "X Layer (196)" },
-  { label: "Agents", value: "4" },
-  { label: "Payment Protocol", value: "x402" },
-  { label: "Wallet Type", value: "OKX TEE" },
-  { label: "Execution", value: "OKX DEX" },
+  { label: "Chain", value: "X Layer", icon: "/x-layer-black.png" },
+  { label: "Agents", value: "4 Agents", icon: "/agent.png" },
+  { label: "Payments ", value: "x402 Protocol", icon: "/x402.png" },
+  { label: "API Provider", value: "OKX OnchainOS", icon: "/x-layer-white.png" },
+  { label: "Wallet", value: "OKX Agentic Wallet", icon: "/okxwallet.png" },
 ];
 
 export function StatsBar() {
@@ -250,10 +204,19 @@ export function StatsBar() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08 }}
-              className="text-center"
+              className="flex items-center gap-2.5"
             >
-              <p className="text-xs text-white/30 mb-1">{s.label}</p>
-              <p className="text-sm font-semibold text-white/80">{s.value}</p>
+              <Image
+                src={s.icon}
+                alt={s.label}
+                width={22}
+                height={22}
+                className="object-contain shrink-0"
+              />
+              <div>
+                <p className="text-xs text-white/30">{s.label}</p>
+                <p className="text-sm font-semibold text-white/80">{s.value}</p>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -272,7 +235,7 @@ const AGENTS = [
     description:
       "Monitors X Layer 24/7 using OKX hot-token and smart money signal APIs. Detects whale moves, trending tokens, and unusual volume. Sells signals behind an x402 paywall.",
     apis: ["hot-token", "dex-signal", "token-trending"],
-    color: "teal",
+    color: "cyan",
   },
   {
     Icon: BarChart3,
@@ -307,10 +270,10 @@ const colorMap: Record<
   string,
   { card: string; icon: string; dot: string }
 > = {
-  teal: {
-    card: "border-teal-500/20 hover:border-teal-500/35",
-    icon: "bg-teal-500/15 text-teal-400",
-    dot: "bg-teal-400",
+  cyan: {
+    card: "border-cyan-500/20 hover:border-cyan-500/35",
+    icon: "bg-cyan-500/15 text-cyan-400",
+    dot: "bg-cyan-400",
   },
   blue: {
     card: "border-blue-500/20 hover:border-blue-500/35",
@@ -354,7 +317,7 @@ export function Features() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className={`relative rounded-2xl border bg-white/3 p-7 transition-colors group ${c.card}`}
+                className={`relative rounded-2xl border bg-[#0d1117] p-7 transition-all duration-200 group hover:shadow-[0_0_40px_rgba(0,0,0,0.4)] ${c.card}`}
               >
                 <div className="flex items-start gap-4 mb-5">
                   <div
@@ -372,16 +335,6 @@ export function Features() {
                 <p className="text-sm text-white/60 leading-relaxed mb-5">
                   {agent.description}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {agent.apis.map((api) => (
-                    <span
-                      key={api}
-                      className="px-2.5 py-1 rounded-md bg-white/5 text-white/40 text-xs font-mono border border-white/8"
-                    >
-                      {api}
-                    </span>
-                  ))}
-                </div>
               </motion.div>
             );
           })}
@@ -400,7 +353,7 @@ const STEPS = [
     title: "Scout detects a signal",
     description:
       "Hot-token API returns a token with high signal strength. Scout persists it to Supabase, emits to EventBus, and makes the data available behind an x402 endpoint.",
-    detail: "POST /scout/signal → 402 → X-Payment-Required",
+    color: "cyan",
   },
   {
     n: "02",
@@ -408,7 +361,7 @@ const STEPS = [
     title: "Analyst pays and scores",
     description:
       "Analyst calls Scout's endpoint, receives the 402, signs an EIP-3009 USDG transfer via OKX TEE, and replays with X-Payment header. Scout settles on-chain. Analyst scores the signal.",
-    detail: "OKX /api/v6/x402/verify → /api/v6/x402/settle",
+    color: "blue",
   },
   {
     n: "03",
@@ -416,7 +369,7 @@ const STEPS = [
     title: "Executor pays and trades",
     description:
       "Score ≥ 40 → execute. Executor pays Analyst via x402, builds OKB → USDC swap calldata from OKX DEX Aggregator, signs via TEE, and broadcasts. Real txHash returned.",
-    detail: "TEE: preTransactionUnsignedInfo → broadcastAgenticTransaction",
+    color: "violet",
   },
   {
     n: "04",
@@ -424,7 +377,7 @@ const STEPS = [
     title: "Orchestrator governs",
     description:
       "Records txHash, updates wallet metrics across all 4 agents, enforces OKB budget. Dashboard shows live feed, agent health, and full trade history.",
-    detail: "Supabase: signals + scores + trades + metrics",
+    color: "amber",
   },
 ];
 
@@ -443,36 +396,38 @@ export function HowItWorks() {
         </div>
 
         <div className="space-y-4">
-          {STEPS.map((step, i) => (
-            <motion.div
-              key={step.n}
-              initial={{ opacity: 0, x: -16 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="flex gap-5 p-6 rounded-2xl border border-white/8 bg-white/2 hover:border-white/12 transition-colors"
-            >
-              <div className="shrink-0 size-12 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
-                <step.Icon className="size-5 text-teal-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-xs font-mono font-bold text-teal-400/60">
-                    {step.n}
-                  </span>
-                  <h3 className="text-base font-semibold text-white">
-                    {step.title}
-                  </h3>
+          {STEPS.map((step, i) => {
+            const c = colorMap[step.color];
+            return (
+              <motion.div
+                key={step.n}
+                initial={{ opacity: 0, x: -16 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className={`flex gap-5 p-6 rounded-2xl border bg-[#0d1117] transition-all duration-200 hover:shadow-[0_0_30px_rgba(0,0,0,0.4)] ${c.card}`}
+              >
+                <div
+                  className={`shrink-0 size-12 rounded-xl ${c.icon} flex items-center justify-center`}
+                >
+                  <step.Icon className="size-5" />
                 </div>
-                <p className="text-sm text-white/50 leading-relaxed mb-3">
-                  {step.description}
-                </p>
-                <code className="text-xs text-teal-400/70 font-mono bg-teal-500/5 px-3 py-1.5 rounded-lg border border-teal-500/10 block w-fit">
-                  {step.detail}
-                </code>
-              </div>
-            </motion.div>
-          ))}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className={`text-xs font-mono font-bold ${c.dot} opacity-60`} style={{ color: 'inherit' }}>
+                      {step.n}
+                    </span>
+                    <h3 className="text-base font-semibold text-white">
+                      {step.title}
+                    </h3>
+                  </div>
+                  <p className="text-sm text-white/50 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -517,7 +472,7 @@ export function X402Section() {
                   key={item}
                   className="flex items-center gap-3 text-sm text-white/60"
                 >
-                  <Check className="size-3.5 text-teal-400 shrink-0" />
+                  <Check className="size-3.5 text-cyan-400 shrink-0" />
                   {item}
                 </div>
               ))}
@@ -528,7 +483,7 @@ export function X402Section() {
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="rounded-2xl border border-white/8 bg-white/3 p-6 font-mono text-xs space-y-3"
+            className="rounded-2xl border border-white/10 bg-[#0d1117] p-6 font-mono text-xs space-y-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
           >
             <div className="text-white/30 mb-4">{"// x402 payment flow"}</div>
             <div>
@@ -562,18 +517,18 @@ export function X402Section() {
             </div>
             <div className="h-px bg-white/5" />
             <div>
-              <span className="text-teal-400">Scout</span>{" "}
+              <span className="text-cyan-400">Scout</span>{" "}
               <span className="text-white/30">→</span>{" "}
               <span className="text-white/60">OKX /api/v6/x402/verify</span>
             </div>
             <div>
-              <span className="text-teal-400">Scout</span>{" "}
+              <span className="text-cyan-400">Scout</span>{" "}
               <span className="text-white/30">→</span>{" "}
               <span className="text-white/60">OKX /api/v6/x402/settle</span>
             </div>
-            <div className="pl-4 text-teal-400">← txHash: 0xabc…</div>
+            <div className="pl-4 text-cyan-400">← txHash: 0xabc…</div>
             <div className="h-px bg-white/5" />
-            <div className="text-teal-400">← 200 OK + signal data</div>
+            <div className="text-cyan-400">← 200 OK + signal data</div>
           </motion.div>
         </div>
       </div>
@@ -620,7 +575,7 @@ export function FAQ() {
           {FAQS.map((faq, i) => (
             <div
               key={i}
-              className="rounded-xl border border-white/8 bg-white/2 overflow-hidden"
+              className="rounded-xl border border-white/8 bg-[#0d1117] overflow-hidden hover:border-white/14 transition-colors"
             >
               <button
                 type="button"
@@ -661,13 +616,14 @@ export function CTA() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative rounded-3xl border border-teal-500/20 bg-gradient-to-br from-teal-500/10 via-transparent to-transparent p-12 text-center overflow-hidden"
+          className="relative rounded-3xl border border-cyan-500/25 bg-[#0d1117] p-12 text-center overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.5)]"
         >
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 size-[400px] rounded-full bg-teal-500/10 blur-[80px]" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 size-[500px] rounded-full bg-cyan-500/12 blur-[100px]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
           </div>
           <div className="relative z-10">
-            <Activity className="size-8 text-teal-400/60 mx-auto mb-6" />
+            <Activity className="size-8 text-cyan-400/60 mx-auto mb-6" />
             <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-6">
               Watch the mesh run.
             </h2>
@@ -678,20 +634,11 @@ export function CTA() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-teal-500 text-black text-base font-semibold hover:bg-teal-400 transition-colors"
+                className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-cyan-400 text-black text-base font-semibold hover:bg-cyan-300 transition-colors"
               >
                 Open Dashboard
                 <ArrowRight className="size-4" />
               </Link>
-              <a
-                href="https://github.com/liquidmesh-fi/liquidmesh"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-white/5 text-white/70 text-base font-medium border border-white/10 hover:bg-white/10 transition-colors"
-              >
-                <GitBranch className="size-4" />
-                View Source
-              </a>
             </div>
           </div>
         </motion.div>
@@ -741,22 +688,13 @@ export function Footer() {
             GitHub
           </a>
           <a
-            href="https://x.com/liquidmesh_fi"
+            href="https://x.com/liquidmeshai"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-white/40 hover:text-white/70 transition-colors flex items-center gap-1.5"
           >
             <ExternalLink className="size-3.5" />
             Twitter
-          </a>
-          <a
-            href="https://www.oklink.com/xlayer"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-white/40 hover:text-white/70 transition-colors flex items-center gap-1.5"
-          >
-            <ExternalLink className="size-3.5" />
-            OKLink
           </a>
         </div>
       </div>

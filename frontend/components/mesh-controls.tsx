@@ -42,7 +42,7 @@ export function MeshControls() {
         <div
           className={`size-2.5 rounded-full ${
             isRunning
-              ? "bg-teal-400 shadow-[0_0_8px_rgba(52,211,153,0.7)] animate-pulse"
+              ? "bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)] animate-pulse"
               : "bg-white/20"
           }`}
         />
@@ -78,7 +78,7 @@ export function MeshControls() {
         <button
           onClick={() => tickMutation.mutate()}
           disabled={tickMutation.isPending}
-          className="px-4 py-2 text-xs font-medium rounded-lg bg-teal-500 text-black border border-teal-400/30 hover:bg-teal-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-semibold"
+          className="px-4 py-2 text-xs font-semibold rounded-lg bg-cyan-400 text-black hover:bg-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {tickMutation.isPending ? "Running…" : "▶ Run Tick"}
         </button>

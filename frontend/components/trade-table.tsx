@@ -67,7 +67,7 @@ function TradeRow({ trade }: { trade: Trade }) {
             href={`https://www.oklink.com/xlayer/tx/${trade.tx_hash}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-teal-400/70 hover:text-teal-400 transition-colors"
+            className="text-cyan-400/70 hover:text-cyan-400 transition-colors"
           >
             {trade.tx_hash.slice(0, 16)}…↗
           </a>
@@ -81,7 +81,7 @@ function TradeRow({ trade }: { trade: Trade }) {
 
 function StatusBadge({ status }: { status: Trade["status"] }) {
   const styles = {
-    success: "bg-teal-400/10 text-teal-400",
+    success: "bg-cyan-400/10 text-cyan-400",
     failed: "bg-red-400/10 text-red-400",
     pending: "bg-yellow-400/10 text-yellow-400",
   };

@@ -1,6 +1,8 @@
 "use client";
 
+import React from "react";
 import Image from "next/image";
+import { Radar, BarChart3, Zap, Network } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AgentCard } from "./agent-card";
 import { ActivityFeed } from "./activity-feed";
@@ -21,8 +23,8 @@ export function Dashboard() {
   return (
     <div className="min-h-screen bg-[#080b0f] text-white">
       {/* Header */}
-      <header className="border-b border-white/6 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="border-b border-white/6 px-6 py-5">
+        <div className="max-w-[1360px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
               src="/icon.png"
@@ -31,22 +33,25 @@ export function Dashboard() {
               height={28}
               className="rounded-lg"
             />
-            <div>
-              <h1 className="text-base font-semibold tracking-tight">LiquidMesh</h1>
-              <p className="text-xs text-white/40">X Layer · OKX OnchainOS</p>
-            </div>
+            <h1 className="text-base font-semibold tracking-tight">LiquidMesh</h1>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs text-white/30">
-              <span className="size-1.5 rounded-full bg-teal-400/60" />
-              Chain 196
+            <div className="flex items-center gap-1.5 text-xs text-white/50">
+              <Image
+                src="/x-layer-white.png"
+                alt="X Layer"
+                width={14}
+                height={14}
+                className="object-contain opacity-70"
+              />
+              X Layer Mainnet
             </div>
             <WalletButton />
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <main className="max-w-[1360px] mx-auto px-6 py-8 space-y-8">
         {/* Mesh controls + summary */}
         <section className="rounded-xl border border-white/8 bg-white/3 px-6 py-5">
           <MeshControls />
@@ -84,11 +89,18 @@ export function Dashboard() {
 
 const PLACEHOLDER_AGENTS = ["Scout", "Analyst", "Executor", "Orchestrator"];
 
-const AGENT_ICONS: Record<string, string> = {
-  Scout: "⬡",
-  Analyst: "◈",
-  Executor: "⚡",
-  Orchestrator: "◎",
+const AGENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Scout: Radar,
+  Analyst: BarChart3,
+  Executor: Zap,
+  Orchestrator: Network,
+};
+
+const AGENT_ICON_STYLES: Record<string, string> = {
+  Scout: "bg-cyan-500/10 border-cyan-500/20 text-cyan-400/60",
+  Analyst: "bg-blue-500/10 border-blue-500/20 text-blue-400/60",
+  Executor: "bg-violet-500/10 border-violet-500/20 text-violet-400/60",
+  Orchestrator: "bg-amber-500/10 border-amber-500/20 text-amber-400/60",
 };
 
 const AGENT_ROLES: Record<string, string> = {
@@ -99,11 +111,15 @@ const AGENT_ROLES: Record<string, string> = {
 };
 
 function PlaceholderCard({ name }: { name: string }) {
+  const Icon = AGENT_ICONS[name] ?? Radar;
+  const iconStyle = AGENT_ICON_STYLES[name] ?? AGENT_ICON_STYLES.Scout;
   return (
     <div className="rounded-xl border border-white/8 bg-white/3 p-5 flex flex-col gap-4 opacity-50">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-2xl leading-none text-white/30">{AGENT_ICONS[name]}</span>
+          <div className={`size-9 rounded-lg border flex items-center justify-center ${iconStyle}`}>
+            <Icon className="size-4" />
+          </div>
           <div>
             <p className="text-sm font-semibold text-white/50">{name}</p>
             <p className="text-xs text-white/25 mt-0.5">{AGENT_ROLES[name]}</p>

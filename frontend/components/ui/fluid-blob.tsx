@@ -83,7 +83,8 @@ void main() {
     vec2 newUV = (vUv - vec2(0.5)) * resolution.zw + vec2(0.5);
     vec3 cameraPos = vec3(0.0, 0.0, 5.0);
     vec3 ray = normalize(vec3((vUv - vec2(0.5)) * resolution.zw, -1));
-    vec3 color = vec3(0.97);
+    vec3 bgColor = vec3(0.031, 0.043, 0.059); // #080b0f dark
+    vec3 color = bgColor;
 
     float t = rayMarch(cameraPos, ray);
     if (t > 0.0) {
@@ -91,12 +92,13 @@ void main() {
         vec3 normal = getNormal(p);
         float fresnel = pow(1.0 + dot(ray, normal), 3.0);
         float shade = fresnel;
-        // Dark teal-tinted blobs on near-white background
-        vec3 darkTeal = vec3(0.02, 0.08, 0.09);
-        color = mix(darkTeal, vec3(0.12, 0.22, 0.22), shade * 0.4);
+        // Plasma orb: deep indigo core → electric cyan rim
+        vec3 blobCore = vec3(0.02, 0.05, 0.18);
+        vec3 blobRim = vec3(0.05, 0.75, 0.88);
+        color = mix(blobCore, blobRim, shade * 0.80);
         gl_FragColor = vec4(color, 1.0);
     } else {
-        gl_FragColor = vec4(0.97, 0.98, 0.98, 1.0);
+        gl_FragColor = vec4(bgColor, 1.0);
     }
 }
 `;
@@ -151,7 +153,7 @@ export function LavaLamp() {
       style={{
         width: "100%",
         height: "100%",
-        background: "#f8fafa",
+        background: "#080b0f",
         position: "absolute",
       }}
     >
