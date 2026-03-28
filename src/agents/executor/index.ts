@@ -84,15 +84,17 @@ export class ExecutorAgent extends Agent {
         "0.5",
       );
 
-      this.log(`[DEBUG] swapTx.to=${swapTx.to} swapTx.value=${swapTx.value} swapTx.from=${swapTx.from} data_prefix=${swapTx.data?.slice(0, 10)}`);
+      this.log(`Swap tx: to=${swapTx.to} value=${swapTx.value} gas=${swapTx.gas}`);
 
+      // value must be wei (minimal units), not human-readable — API takes minimal units
       const unsignedInfo = await preTransactionUnsignedInfo({
         accountId: this.config.accountId,
         chainIndex: Number(XLAYER_CHAIN_INDEX),
         fromAddr: swapTx.from,
         toAddr: swapTx.to,
-        value: swapAmountOkb,
+        value: swapTx.value,
         inputData: swapTx.data,
+        gasLimit: swapTx.gas,
       });
 
       if (!unsignedInfo.executeResult) {

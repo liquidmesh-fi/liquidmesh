@@ -87,7 +87,7 @@ scoutRouter.get("/signal", async (c) => {
     await insertPayment({
       from_agent: "analyst",
       to_endpoint: "/scout/signal",
-      amount_usdg: X402_SIGNAL_PRICE,
+      amount_usdg: (Number(X402_SIGNAL_PRICE) / 1e6).toFixed(6),
       tx_hash: settlement.txHash,
       purpose: "signal",
     });

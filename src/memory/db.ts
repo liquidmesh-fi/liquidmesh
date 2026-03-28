@@ -187,7 +187,8 @@ export async function getTotalUsdgEarned(): Promise<number> {
   if (error) throw new Error(`getTotalUsdgEarned: ${error.message}`);
 
   const payments = (data ?? []) as Pick<Payment, "amount_usdg">[];
-  return payments.reduce((sum, p) => sum + Number.parseFloat(p.amount_usdg), 0);
+  // amount_usdg is stored in micro-units (USDG has 6 decimals): 1000 = 0.001 USDG
+  return payments.reduce((sum, p) => sum + Number.parseFloat(p.amount_usdg), 0) / 1e6;
 }
 
 export async function getLastTickAt(): Promise<string | null> {

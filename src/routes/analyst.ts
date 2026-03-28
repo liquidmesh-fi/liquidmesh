@@ -92,7 +92,7 @@ analystRouter.get("/score", async (c) => {
     await insertPayment({
       from_agent: "executor",
       to_endpoint: "/analyst/score",
-      amount_usdg: X402_SCORE_PRICE,
+      amount_usdg: (Number(X402_SCORE_PRICE) / 1e6).toFixed(6),
       tx_hash: settlement.txHash,
       purpose: "score",
     });
