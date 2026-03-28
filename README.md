@@ -4,7 +4,7 @@
 
 **X Layer OnchainOS AI Hackathon submission.**
 
-**Live:** [https://liquidmeshfi.xyz](https://liquidmeshfi.xyz) · API: [https://liquidmesh.onrender.com](https://liquidmesh.onrender.com)
+**Live:** [https://liquidmeshfi.xyz](https://liquidmeshfi.xyz) · API: [https://api.liquidmeshfi.xyz](https://api.liquidmeshfi.xyz)
 
 ---
 
@@ -147,11 +147,11 @@ liquidmesh-xlayer/
 | Service | Host | URL |
 |---|---|---|
 | Frontend | Vercel | `https://liquidmeshfi.xyz` |
-| Backend API | Render | `https://liquidmesh.onrender.com` |
+| Backend API | Render | `https://api.liquidmeshfi.xyz` |
 
-Trigger a live tick: `curl -X POST https://liquidmesh.onrender.com/mesh/tick`
+Trigger a live tick: `curl -X POST https://api.liquidmeshfi.xyz/mesh/tick`
 
-View mesh economy: `curl https://liquidmesh.onrender.com/mesh/economy`
+View mesh economy: `curl https://api.liquidmeshfi.xyz/mesh/economy`
 
 ---
 

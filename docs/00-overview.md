@@ -5,7 +5,7 @@
 LiquidMesh is an **autonomous multi-agent trading economy** on X Layer (chainId 196). It is not a trading bot. It is four sovereign AI agents — each with an OKX TEE-secured wallet — that form a self-sustaining economic mesh where agents earn by selling intelligence, spend to acquire it, execute real onchain swaps, and compound profits without any human intervention.
 
 **Live:** https://liquidmeshfi.xyz
-**API:** https://liquidmesh.onrender.com
+**API:** https://api.liquidmeshfi.xyz
 **Chain:** X Layer (OKB, chainId 196)
 **Built for:** X Layer OnchainOS AI Hackathon
 

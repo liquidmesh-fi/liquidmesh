@@ -18,7 +18,7 @@ LiquidMesh runs automatically in production (`ENABLE_AGENTS=true`, every 30 minu
 |---|---|
 | Frontend | https://liquidmeshfi.xyz |
 | Dashboard | https://liquidmeshfi.xyz/dashboard |
-| Backend base | https://liquidmesh.onrender.com |
+| Backend base | https://api.liquidmeshfi.xyz |
 | Mesh status | GET `/mesh/status` |
 | Mesh summary | GET `/mesh/summary` |
 | Economy metrics | GET `/mesh/economy` |
@@ -39,7 +39,7 @@ LiquidMesh runs automatically in production (`ENABLE_AGENTS=true`, every 30 minu
 Render free tier sleeps after 15 minutes of inactivity. Always ping status first:
 
 ```bash
-curl https://liquidmesh.onrender.com/mesh/status
+curl https://api.liquidmeshfi.xyz/mesh/status
 ```
 
 Expected:
@@ -65,7 +65,7 @@ If you get a 502 or timeout, wait 10 seconds and try again (cold start).
 ### Step 2 — Verify executor wallet is funded
 
 ```bash
-curl https://liquidmesh.onrender.com/mesh/balances
+curl https://api.liquidmeshfi.xyz/mesh/balances
 ```
 
 Expected: Executor shows OKB balance > 0:
@@ -85,7 +85,7 @@ If Executor `okb` is `"0"` → fund the wallet before proceeding.
 ### Step 3 — Trigger a tick
 
 ```bash
-curl -X POST https://liquidmesh.onrender.com/mesh/tick
+curl -X POST https://api.liquidmeshfi.xyz/mesh/tick
 ```
 
 Or click **"▶ Run Tick"** in the dashboard.
@@ -153,7 +153,7 @@ You should see:
 ### Step 5 — Verify x402 payments
 
 ```bash
-curl https://liquidmesh.onrender.com/mesh/payments
+curl https://api.liquidmeshfi.xyz/mesh/payments
 ```
 
 Each payment record is a real USDG settlement on X Layer:
@@ -200,7 +200,7 @@ After a successful tick you should see:
 ### Step 7 — Check economy metrics
 
 ```bash
-curl https://liquidmesh.onrender.com/mesh/economy
+curl https://api.liquidmeshfi.xyz/mesh/economy
 ```
 
 ```json
@@ -227,21 +227,21 @@ curl https://liquidmesh.onrender.com/mesh/economy
 Run 2–3 ticks to build up dashboard activity before recording the demo video:
 
 ```bash
-curl -X POST https://liquidmesh.onrender.com/mesh/tick
+curl -X POST https://api.liquidmeshfi.xyz/mesh/tick
 sleep 15
-curl -X POST https://liquidmesh.onrender.com/mesh/tick
+curl -X POST https://api.liquidmeshfi.xyz/mesh/tick
 sleep 15
-curl -X POST https://liquidmesh.onrender.com/mesh/tick
+curl -X POST https://api.liquidmeshfi.xyz/mesh/tick
 ```
 
 Or start auto mode — the mesh ticks every 30 minutes automatically:
 
 ```bash
 # Start (runs every CHECK_INTERVAL_MINUTES)
-curl -X POST https://liquidmesh.onrender.com/mesh/start
+curl -X POST https://api.liquidmeshfi.xyz/mesh/start
 
 # Stop
-curl -X POST https://liquidmesh.onrender.com/mesh/stop
+curl -X POST https://api.liquidmeshfi.xyz/mesh/stop
 ```
 
 ---
@@ -268,17 +268,17 @@ Collect these before submitting to the hackathon:
 
 - [ ] **X Layer txHash** — from Executor tick response
   ```bash
-  curl -X POST https://liquidmesh.onrender.com/mesh/tick | jq '.data[2].value.data.txHash'
+  curl -X POST https://api.liquidmeshfi.xyz/mesh/tick | jq '.data[2].value.data.txHash'
   ```
 
 - [ ] **x402 payment txHashes** — from `/mesh/payments`
   ```bash
-  curl https://liquidmesh.onrender.com/mesh/payments | jq '.[].tx_hash'
+  curl https://api.liquidmeshfi.xyz/mesh/payments | jq '.[].tx_hash'
   ```
 
 - [ ] **Live frontend URL** — https://liquidmeshfi.xyz
 
-- [ ] **Live API URL** — https://liquidmesh.onrender.com
+- [ ] **Live API URL** — https://api.liquidmeshfi.xyz
 
 - [ ] **GitHub repo** — public, with all source code
 

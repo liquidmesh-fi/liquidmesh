@@ -46,7 +46,7 @@
 
 ### Deployment
 
-- ✅ **Backend live on Render**: `https://liquidmesh.onrender.com`
+- ✅ **Backend live on Render**: `https://api.liquidmeshfi.xyz`
 - ✅ **Frontend live on Vercel** (URL from user)
 - ✅ `package.json` has `start` script: `bun src/index.ts`
 - ✅ Render build command: `bun install`, start: `bun start`
@@ -59,7 +59,7 @@
 1. **Fund executor wallet** — ~$8.50 OKB funding in progress (Mar 28). Wallet: `EXECUTOR_WALLET_ADDRESS` in env.
 2. **Deploy V3 to Render** — `git push` → Render auto-redeploys from main branch
 3. **Deploy V3 to Vercel** — frontend auto-deploys on push
-4. **Test end-to-end** — POST /mesh/tick on `https://liquidmesh.onrender.com/mesh/tick`, verify txHash in dashboard + economy panel shows USDG earned
+4. **Test end-to-end** — POST /mesh/tick on `https://api.liquidmeshfi.xyz/mesh/tick`, verify txHash in dashboard + economy panel shows USDG earned
 5. **Record demo video** — show: landing page (sovereign story) → dashboard (countdown + economy panel) → run tick → txHash on OKLink
 
 ---
@@ -85,7 +85,7 @@
 
 ## Notes
 
-- Backend: `https://liquidmesh.onrender.com` (port 3001 internally)
-- Frontend: Vercel (set `NEXT_PUBLIC_API_URL=https://liquidmesh.onrender.com`)
+- Backend: `https://api.liquidmeshfi.xyz` (port 3001 internally)
+- Frontend: Vercel (set `NEXT_PUBLIC_API_URL=https://api.liquidmeshfi.xyz`)
 - All OKX API calls go through `services/onchainos/` only
 - `ENABLE_AGENTS=false` — trigger mesh manually via POST /mesh/tick

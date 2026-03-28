@@ -261,7 +261,7 @@ Set `ENABLE_AGENTS=true` in `.env` — the mesh auto-starts on `bun dev` and tic
 | Node version | — (Bun handles this) |
 
 5. Add all environment variables from Step 5
-6. Set `PUBLIC_API_URL` to your Render URL (e.g. `https://liquidmesh.onrender.com`)
+6. Set `PUBLIC_API_URL` to your Render URL (e.g. `https://api.liquidmeshfi.xyz`)
 7. Set `ENABLE_AGENTS=false` on Render (trigger manually during testing, or `true` for production auto-run)
 8. Deploy
 
@@ -274,7 +274,7 @@ Set `ENABLE_AGENTS=true` in `.env` — the mesh auto-starts on `bun dev` and tic
 3. Set **Root Directory** to `frontend`
 4. Add environment variable:
    ```
-   NEXT_PUBLIC_API_URL=https://your-render-url.onrender.com
+   NEXT_PUBLIC_API_URL=https://api.liquidmeshfi.xyz
    ```
 5. Deploy
 
