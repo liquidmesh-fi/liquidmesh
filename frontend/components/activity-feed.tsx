@@ -42,7 +42,7 @@ export function ActivityFeed() {
       <div className="px-5 py-4 border-b border-white/8 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-white">Live Activity</h2>
         <span className="flex items-center gap-1.5">
-          <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="size-1.5 rounded-full bg-teal-400 animate-pulse" />
           <span className="text-xs text-white/40">Live</span>
         </span>
       </div>
@@ -73,7 +73,7 @@ function FeedRow({ item }: { item: FeedItem }) {
             href={`https://www.oklink.com/xlayer/tx/${txHash}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-emerald-400/60 hover:text-emerald-400 mt-0.5 truncate font-mono transition-colors block"
+            className="text-xs text-teal-400/60 hover:text-teal-400 mt-0.5 truncate font-mono transition-colors block"
           >
             {detail} ↗
           </a>
@@ -103,7 +103,7 @@ function formatItem(item: FeedItem): {
       detail: tx_hash ? tx_hash.slice(0, 20) + "…" : token_symbol,
       color:
         status === "success"
-          ? "text-emerald-400"
+          ? "text-teal-400"
           : status === "failed"
             ? "text-red-400"
             : "text-yellow-400",
@@ -127,7 +127,7 @@ function formatItem(item: FeedItem): {
       icon: item.data.recommendation === "execute" ? "✓" : "✗",
       label: `Analyst: score ${item.data.score}/100 → ${action}`,
       detail: item.data.reason,
-      color: item.data.recommendation === "execute" ? "text-emerald-400" : "text-white/40",
+      color: item.data.recommendation === "execute" ? "text-teal-400" : "text-white/40",
       txHash: null,
     };
   }

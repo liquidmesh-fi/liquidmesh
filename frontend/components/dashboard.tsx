@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { AgentCard } from "./agent-card";
 import { ActivityFeed } from "./activity-feed";
@@ -23,9 +24,13 @@ export function Dashboard() {
       <header className="border-b border-white/6 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="size-7 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
-              <span className="text-xs font-bold text-black">⬡</span>
-            </div>
+            <Image
+              src="/icon.png"
+              alt="LiquidMesh"
+              width={28}
+              height={28}
+              className="rounded-lg"
+            />
             <div>
               <h1 className="text-base font-semibold tracking-tight">LiquidMesh</h1>
               <p className="text-xs text-white/40">X Layer · OKX OnchainOS</p>
@@ -33,7 +38,7 @@ export function Dashboard() {
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-xs text-white/30">
-              <span className="size-1.5 rounded-full bg-emerald-400/60" />
+              <span className="size-1.5 rounded-full bg-teal-400/60" />
               Chain 196
             </div>
             <WalletButton />

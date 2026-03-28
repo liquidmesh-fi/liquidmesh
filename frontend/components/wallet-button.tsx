@@ -1,5 +1,6 @@
 "use client";
 
+import { Wallet } from "lucide-react";
 import { toast } from "sonner";
 import {
   useChainId,
@@ -9,7 +10,7 @@ import {
   useAccount,
   useSwitchChain,
 } from "wagmi";
-import { getOkxConnector, hasOkxWallet, XLAYER_CHAIN_ID } from "../../lib/okx-wallet";
+import { getOkxConnector, hasOkxWallet, XLAYER_CHAIN_ID } from "@/lib/okx-wallet";
 
 function truncateAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -68,9 +69,9 @@ export function WalletButton() {
       <button
         type="button"
         onClick={handleDisconnect}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-xs font-mono text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-teal-500/30 bg-teal-500/10 text-xs font-mono text-teal-400 hover:bg-teal-500/20 hover:border-teal-500/50 transition-all"
       >
-        <span className="size-1.5 rounded-full bg-emerald-400" />
+        <span className="size-1.5 rounded-full bg-teal-400" />
         {truncateAddress(address)}
       </button>
     );
@@ -82,17 +83,7 @@ export function WalletButton() {
       onClick={handleConnect}
       className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all"
     >
-      <svg
-        className="size-3.5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        aria-hidden="true"
-      >
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </svg>
+      <Wallet className="size-3.5" />
       Connect OKX Wallet
     </button>
   );

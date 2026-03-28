@@ -1,12 +1,13 @@
 "use client";
 
-import type { AgentStatus } from "../../lib/api";
+import { Radar, BarChart3, Zap, Network } from "lucide-react";
+import type { AgentStatus } from "@/lib/api";
 
-const AGENT_ICONS: Record<string, string> = {
-  Scout: "⬡",
-  Analyst: "◈",
-  Executor: "⚡",
-  Orchestrator: "◎",
+const AGENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Scout: Radar,
+  Analyst: BarChart3,
+  Executor: Zap,
+  Orchestrator: Network,
 };
 
 const AGENT_ROLES: Record<string, string> = {
@@ -21,7 +22,7 @@ interface AgentCardProps {
 }
 
 export function AgentCard({ agent }: AgentCardProps) {
-  const icon = AGENT_ICONS[agent.name] ?? "◯";
+  const Icon = AGENT_ICONS[agent.name] ?? Radar;
   const role = AGENT_ROLES[agent.name] ?? agent.name;
   const shortAddress = agent.walletAddress
     ? `${agent.walletAddress.slice(0, 6)}…${agent.walletAddress.slice(-4)}`
@@ -31,7 +32,9 @@ export function AgentCard({ agent }: AgentCardProps) {
     <div className="relative rounded-xl border border-white/8 bg-white/3 p-5 flex flex-col gap-4 hover:border-white/15 transition-colors">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-2xl leading-none text-emerald-400">{icon}</span>
+          <div className="size-9 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+            <Icon className="size-4 text-teal-400" />
+          </div>
           <div>
             <p className="text-sm font-semibold text-white leading-tight">{agent.name}</p>
             <p className="text-xs text-white/40 mt-0.5">{role}</p>
@@ -44,11 +47,7 @@ export function AgentCard({ agent }: AgentCardProps) {
         <Stat label="Cycles" value={agent.cycleCount.toString()} />
         <Stat
           label="Last Active"
-          value={
-            agent.lastActivity
-              ? timeAgo(agent.lastActivity)
-              : "Never"
-          }
+          value={agent.lastActivity ? timeAgo(agent.lastActivity) : "Never"}
         />
       </div>
 
@@ -64,10 +63,12 @@ function StatusDot({ active }: { active: boolean }) {
     <div className="flex items-center gap-1.5">
       <span
         className={`size-2 rounded-full ${
-          active ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" : "bg-white/20"
+          active
+            ? "bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.6)]"
+            : "bg-white/20"
         }`}
       />
-      <span className={`text-xs ${active ? "text-emerald-400" : "text-white/30"}`}>
+      <span className={`text-xs ${active ? "text-teal-400" : "text-white/30"}`}>
         {active ? "Running" : "Idle"}
       </span>
     </div>

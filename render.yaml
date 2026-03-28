@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: liquidmesh-backend
+    runtime: bun
+    rootDir: .
+    buildCommand: bun install
+    startCommand: bun run src/index.ts
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: ENABLE_AGENTS
+        value: false

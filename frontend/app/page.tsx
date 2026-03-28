@@ -8,7 +8,7 @@ import {
   FAQ,
   CTA,
   Footer,
-} from "./_components/landing";
+} from "@/components/landing";
 
 export default function Home() {
   return (
