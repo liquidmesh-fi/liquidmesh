@@ -194,6 +194,8 @@ export async function preTransactionUnsignedInfo(params: {
   value: string;
   inputData?: string;
   gasLimit?: string;
+  aaDexTokenAddr?: string;
+  aaDexTokenAmount?: string;
 }): Promise<PreTxUnsignedInfo> {
   const session = await getAuthedSession(params.accountId);
   return walletPost<PreTxUnsignedInfo>(
@@ -207,6 +209,8 @@ export async function preTransactionUnsignedInfo(params: {
       sessionCert: session.sessionCert,
       ...(params.inputData ? { inputData: params.inputData } : {}),
       ...(params.gasLimit ? { gasLimit: params.gasLimit } : {}),
+      ...(params.aaDexTokenAddr ? { aaDexTokenAddr: params.aaDexTokenAddr } : {}),
+      ...(params.aaDexTokenAmount ? { aaDexTokenAmount: params.aaDexTokenAmount } : {}),
     },
     jwtHeaders(session.accessToken),
   );
