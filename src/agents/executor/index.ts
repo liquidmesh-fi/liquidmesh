@@ -86,13 +86,14 @@ export class ExecutorAgent extends Agent {
 
       this.log(`Swap tx: to=${swapTx.to} value=${swapTx.value} gas=${swapTx.gas}`);
 
-      // value must be wei (minimal units), not human-readable — API takes minimal units
+      // value is human-readable OKB (API multiplies by 1e18 internally)
+      // gasLimit from DEX quote prevents simulation gas estimation failure
       const unsignedInfo = await preTransactionUnsignedInfo({
         accountId: this.config.accountId,
         chainIndex: Number(XLAYER_CHAIN_INDEX),
         fromAddr: swapTx.from,
         toAddr: swapTx.to,
-        value: swapTx.value,
+        value: swapAmountOkb,
         inputData: swapTx.data,
         gasLimit: swapTx.gas,
       });
