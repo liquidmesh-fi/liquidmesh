@@ -26,11 +26,11 @@ interface SwapTransactionResponse {
     tx: {
       data: string;
       from: string;
-      gasLimit: string;
+      gas: string;
       gasPrice: string;
       to: string;
       value: string;
-      minOutAmount: string;
+      minReceiveAmount: string;
     };
     routerResult?: unknown;
   }>;
@@ -98,7 +98,7 @@ export async function buildSwapTransaction(
         toTokenAddress: toToken,
         amount: fromAmount,
         userWalletAddress: userAddress,
-        slippage: slippage,
+        slippagePercent: slippage,
       },
     },
   );
@@ -109,11 +109,11 @@ export async function buildSwapTransaction(
   return {
     data: swap.data,
     from: swap.from,
-    gas: swap.gasLimit,
+    gas: swap.gas,
     gasPrice: swap.gasPrice,
     to: swap.to,
     value: swap.value,
-    minOutAmount: swap.minOutAmount,
+    minOutAmount: swap.minReceiveAmount,
   };
 }
 
