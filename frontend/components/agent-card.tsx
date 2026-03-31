@@ -78,7 +78,19 @@ export function AgentCard({ agent, balance }: AgentCardProps) {
 
       {/* Footer: total USD + address + cycles */}
       <div className="pt-1 border-t border-white/5 flex items-center justify-between">
-        <p className="text-xs text-white/30 font-mono">{shortAddress}</p>
+        {agent.walletAddress ? (
+          <a
+            href={`https://www.oklink.com/xlayer/address/${agent.walletAddress}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-white/30 font-mono hover:text-white/60 transition-colors"
+            title={agent.walletAddress}
+          >
+            {shortAddress}
+          </a>
+        ) : (
+          <p className="text-xs text-white/30 font-mono">—</p>
+        )}
         <div className="flex items-center gap-3">
           {totalUsd !== null && totalUsd > 0 && (
             <span className={`text-xs font-mono ${colors.text}`}>${totalUsd.toFixed(2)}</span>
