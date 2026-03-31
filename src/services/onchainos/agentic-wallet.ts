@@ -175,7 +175,10 @@ export async function akLogin(accountId?: string): Promise<WalletSession> {
     projectId: verifyResp.projectId,
     accountId: verifyResp.accountId,
     accountName: verifyResp.accountName,
-    expiresAt: Number(verifyResp.sessionKeyExpireAt),
+    expiresAt: (() => {
+      const raw = Number(verifyResp.sessionKeyExpireAt);
+      return raw > 1e12 ? Math.floor(raw / 1000) : raw;
+    })(),
   };
 
   sessionCache.set(cacheKey, session);
