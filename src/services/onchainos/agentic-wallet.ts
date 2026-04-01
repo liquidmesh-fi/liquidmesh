@@ -194,6 +194,27 @@ async function getAuthedSession(accountId?: string): Promise<WalletSession> {
   return cached;
 }
 
+function evictSession(accountId?: string): void {
+  sessionCache.delete(accountId ?? DEFAULT_CACHE_KEY);
+}
+
+async function withSessionRetry<T>(
+  accountId: string | undefined,
+  fn: (session: WalletSession) => Promise<T>,
+): Promise<T> {
+  const session = await getAuthedSession(accountId);
+  try {
+    return await fn(session);
+  } catch (err) {
+    if (String(err).includes("10008")) {
+      evictSession(accountId);
+      const fresh = await akLogin(accountId);
+      return fn(fresh);
+    }
+    throw err;
+  }
+}
+
 export async function preTransactionUnsignedInfo(params: {
   accountId: string;
   chainIndex: number;
@@ -206,23 +227,24 @@ export async function preTransactionUnsignedInfo(params: {
   aaDexTokenAddr?: string;
   aaDexTokenAmount?: string;
 }): Promise<PreTxUnsignedInfo> {
-  const session = await getAuthedSession(params.accountId);
-  return walletPost<PreTxUnsignedInfo>(
-    `${WALLET_PREFIX}/pre-transaction/unsignedInfo`,
-    {
-      chainPath: "m/44/60",
-      chainIndex: params.chainIndex,
-      fromAddr: params.fromAddr,
-      toAddr: params.toAddr,
-      amount: params.amount,
-      sessionCert: session.sessionCert,
-      ...(params.contractAddr ? { contractAddr: params.contractAddr } : {}),
-      ...(params.inputData ? { inputData: params.inputData } : {}),
-      ...(params.gasLimit ? { gasLimit: params.gasLimit } : {}),
-      ...(params.aaDexTokenAddr ? { aaDexTokenAddr: params.aaDexTokenAddr } : {}),
-      ...(params.aaDexTokenAmount ? { aaDexTokenAmount: params.aaDexTokenAmount } : {}),
-    },
-    jwtHeaders(session.accessToken),
+  return withSessionRetry(params.accountId, (session) =>
+    walletPost<PreTxUnsignedInfo>(
+      `${WALLET_PREFIX}/pre-transaction/unsignedInfo`,
+      {
+        chainPath: "m/44/60",
+        chainIndex: params.chainIndex,
+        fromAddr: params.fromAddr,
+        toAddr: params.toAddr,
+        amount: params.amount,
+        sessionCert: session.sessionCert,
+        ...(params.contractAddr ? { contractAddr: params.contractAddr } : {}),
+        ...(params.inputData ? { inputData: params.inputData } : {}),
+        ...(params.gasLimit ? { gasLimit: params.gasLimit } : {}),
+        ...(params.aaDexTokenAddr ? { aaDexTokenAddr: params.aaDexTokenAddr } : {}),
+        ...(params.aaDexTokenAmount ? { aaDexTokenAmount: params.aaDexTokenAmount } : {}),
+      },
+      jwtHeaders(session.accessToken),
+    ),
   );
 }
 

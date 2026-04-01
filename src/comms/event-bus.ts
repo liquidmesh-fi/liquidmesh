@@ -17,6 +17,7 @@ export interface SignalReadyPayload {
 
 export interface ScoreReadyPayload {
   tokenAddress: string;
+  tokenSymbol: string;
   score: number;
   recommendation: "execute" | "skip";
   reason: string;

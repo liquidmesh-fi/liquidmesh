@@ -75,6 +75,7 @@ export class AnalystAgent extends Agent {
       // Emit internal event
       this.eventBus.emit("score:ready", {
         tokenAddress: signal.tokenAddress,
+        tokenSymbol: signal.tokenSymbol,
         score: scoreResult.score,
         recommendation: scoreResult.recommendation,
         reason: scoreResult.reason,

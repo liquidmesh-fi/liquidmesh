@@ -61,7 +61,7 @@ export class ExecutorAgent extends Agent {
     const trade = await insertTrade({
       score_id: (scoreData as { id?: string }).id ?? "unknown",
       token_address: score.tokenAddress,
-      token_symbol: score.tokenAddress.slice(0, 8),
+      token_symbol: score.tokenSymbol,
       amount_okb: swapAmountOkb,
       tx_hash: null,
       status: "pending",
